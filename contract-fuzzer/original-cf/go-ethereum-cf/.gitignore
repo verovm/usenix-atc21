@@ -1,0 +1,4 @@
+build/bin/*
+build/_workspace/*
+.idea/
+.vscode/

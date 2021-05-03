@@ -1,0 +1,30 @@
+{
+    "contracts": [
+        {
+            "home": "/ContractFuzzer/contract_deployer",
+            "childhome": "/examples",
+            "from": "0x2b71cc952c8e3dfe97a696cf5c5b29f8a07de3d8",
+            "gas": "50000000000",
+            "name": "Aeternis",
+            "param_Names": [
+                "_owner"
+            ],
+            "param_Types": [
+                "address"
+            ],
+            "param_Values": {
+                "_owner": "0xed161fa9adad3ba4d30c829034c4745ef443e0d9"
+            },
+            "values": [
+                "0xed161fa9adad3ba4d30c829034c4745ef443e0d9"
+            ],
+            "payable": false,
+            "value": "1000000000"
+        }
+    ],
+    "from": "none",
+    "gas": "50000000000",
+    "home": "/ContractFuzzer/contract_deployer",
+    "value": "1000000000",
+    "file_path": "/ContractFuzzer/contract_deployer/examples/config/Aeternis.json"
+}

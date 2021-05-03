@@ -1,0 +1,41 @@
+version: '3.3'
+
+networks:
+  app-tier:
+    driver: overlay
+
+services:
+    master:
+        image: cf-experiment-master
+        ports:
+          - '9999:9999'
+        networks:
+            - app-tier
+        volumes:
+          - /opt/cf-experiments/contracts/:/contracts
+          - cf:/out/
+
+    cf:
+        image: contractfuzzer
+        networks:
+            - app-tier
+        volumes:
+            - /opt/cf-experiments/contracts/:/contracts
+            - /opt/cf-experiments/address-to-substate/:/addresses
+            - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/
+            - /opt/cf-experiments/reporter/:/reporter
+        environment:
+            ContractFuzzer: "/contractFuzzer/ContractFuzzer"
+            SERVER_HOST: "master"
+            THREADS: 2
+        command: 
+            - ./run_experiment.sh
+        deploy:
+            replicas: 1
+        restart: always
+volumes:
+    cf:
+
+
+
+
