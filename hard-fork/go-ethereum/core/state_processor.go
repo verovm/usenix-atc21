@@ -25,6 +25,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/research"
 )
 
 // StateProcessor is a basic Processor, which takes care of transitioning
@@ -64,11 +65,33 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 	// Mutate the block and state according to any hard-fork specs
 	if p.config.DAOForkSupport && p.config.DAOForkBlock != nil && p.config.DAOForkBlock.Cmp(block.Number()) == 0 {
 		misc.ApplyDAOHardFork(statedb)
+
+		// stage1-substate: Finalise all DAO accounts, don't save them in substate
+		if config := p.config; config.IsByzantium(header.Number) {
+			statedb.Finalise(true)
+		} else {
+			statedb.Finalise(config.IsEIP158(header.Number))
+		}
+
 	}
+
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions() {
 		statedb.Prepare(tx.Hash(), block.Hash(), i)
 		receipt, err := ApplyTransaction(p.config, p.bc, nil, gp, statedb, header, tx, usedGas, cfg)
+
+		// stage1-substate: save tx substate into DBs, merge block hashes to env
+		if researchMsg, researchErr := tx.AsMessage(types.MakeSigner(p.config, header.Number)); researchErr == nil {
+			researchSubstate := research.NewSubstate(
+				statedb.ResearchPreAlloc,
+				statedb.ResearchPostAlloc,
+				research.NewSubstateEnv(block, statedb.ResearchBlockHashes),
+				research.NewSubstateMessage(&researchMsg),
+				research.NewSubstateResult(receipt),
+			)
+			research.PutSubstate(block.NumberU64(), i, researchSubstate)
+		}
+
 		if err != nil {
 			return nil, nil, 0, err
 		}
@@ -96,7 +119,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// about the transaction and calling mechanisms.
 	vmenv := vm.NewEVM(context, statedb, config, cfg)
 	// Apply the transaction to the current state (included in the env)
-	_, gas, failed, err := ApplyMessage(vmenv, msg, gp)
+	result, err := ApplyMessage(vmenv, msg, gp)
 	if err != nil {
 		return nil, err
 	}
@@ -107,13 +130,13 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	} else {
 		root = statedb.IntermediateRoot(config.IsEIP158(header.Number)).Bytes()
 	}
-	*usedGas += gas
+	*usedGas += result.UsedGas
 
 	// Create a new receipt for the transaction, storing the intermediate root and gas used by the tx
 	// based on the eip phase, we're passing whether the root touch-delete accounts.
-	receipt := types.NewReceipt(root, failed, *usedGas)
+	receipt := types.NewReceipt(root, result.Failed(), *usedGas)
 	receipt.TxHash = tx.Hash()
-	receipt.GasUsed = gas
+	receipt.GasUsed = result.UsedGas
 	// if the transaction created a contract, store the creation address in the receipt.
 	if msg.To() == nil {
 		receipt.ContractAddress = crypto.CreateAddress(vmenv.Context.Origin, tx.Nonce())

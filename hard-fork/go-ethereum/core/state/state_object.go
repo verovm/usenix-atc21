@@ -90,6 +90,9 @@ type stateObject struct {
 	dirtyCode bool // true if the code was updated
 	suicided  bool
 	deleted   bool
+
+	// stage1-substate: stateObject.ResearchTouched
+	ResearchTouched map[common.Hash]struct{}
 }
 
 // empty returns whether the account is considered empty.
@@ -125,6 +128,9 @@ func newObject(db *StateDB, address common.Address, data Account) *stateObject {
 		originStorage:  make(Storage),
 		pendingStorage: make(Storage),
 		dirtyStorage:   make(Storage),
+
+		// stage1-substate: init stateObject.ResearchTouched
+		ResearchTouched: make(map[common.Hash]struct{}),
 	}
 }
 
@@ -169,6 +175,10 @@ func (s *stateObject) getTrie(db Database) Trie {
 
 // GetState retrieves a value from the account storage trie.
 func (s *stateObject) GetState(db Database, key common.Hash) common.Hash {
+	// stage1-substate: mark keys touched by GetState
+	if _, exist := s.ResearchTouched[key]; !exist {
+		s.ResearchTouched[key] = struct{}{}
+	}
 	// If the fake storage is set, only lookup the state here(in the debugging mode)
 	if s.fakeStorage != nil {
 		return s.fakeStorage[key]
@@ -195,15 +205,35 @@ func (s *stateObject) GetCommittedState(db Database, key common.Hash) common.Has
 	if value, cached := s.originStorage[key]; cached {
 		return value
 	}
-	// Track the amount of time wasted on reading the storage trie
-	if metrics.EnabledExpensive {
-		defer func(start time.Time) { s.db.StorageReads += time.Since(start) }(time.Now())
+	// If no live objects are available, attempt to use snapshots
+	var (
+		enc []byte
+		err error
+	)
+	if s.db.snap != nil {
+		if metrics.EnabledExpensive {
+			defer func(start time.Time) { s.db.SnapshotStorageReads += time.Since(start) }(time.Now())
+		}
+		// If the object was destructed in *this* block (and potentially resurrected),
+		// the storage has been cleared out, and we should *not* consult the previous
+		// snapshot about any storage values. The only possible alternatives are:
+		//   1) resurrect happened, and new slot values were set -- those should
+		//      have been handles via pendingStorage above.
+		//   2) we don't have new values, and can deliver empty response back
+		if _, destructed := s.db.snapDestructs[s.addrHash]; destructed {
+			return common.Hash{}
+		}
+		enc, err = s.db.snap.Storage(s.addrHash, crypto.Keccak256Hash(key.Bytes()))
 	}
-	// Otherwise load the value from the database
-	enc, err := s.getTrie(db).TryGet(key[:])
-	if err != nil {
-		s.setError(err)
-		return common.Hash{}
+	// If snapshot unavailable or reading from it failed, load from the database
+	if s.db.snap == nil || err != nil {
+		if metrics.EnabledExpensive {
+			defer func(start time.Time) { s.db.StorageReads += time.Since(start) }(time.Now())
+		}
+		if enc, err = s.getTrie(db).TryGet(key.Bytes()); err != nil {
+			s.setError(err)
+			return common.Hash{}
+		}
 	}
 	var value common.Hash
 	if len(enc) > 0 {
@@ -269,16 +299,32 @@ func (s *stateObject) finalise() {
 	if len(s.dirtyStorage) > 0 {
 		s.dirtyStorage = make(Storage)
 	}
+
+	// stage1-substate: clear stateObject.ResearchTouched
+	s.ResearchTouched = make(map[common.Hash]struct{})
 }
 
 // updateTrie writes cached storage modifications into the object's storage trie.
+// It will return nil if the trie has not been loaded and no changes have been made
 func (s *stateObject) updateTrie(db Database) Trie {
 	// Make sure all dirty slots are finalized into the pending storage area
 	s.finalise()
-
+	if len(s.pendingStorage) == 0 {
+		return s.trie
+	}
 	// Track the amount of time wasted on updating the storge trie
 	if metrics.EnabledExpensive {
 		defer func(start time.Time) { s.db.StorageUpdates += time.Since(start) }(time.Now())
+	}
+	// Retrieve the snapshot storage map for the object
+	var storage map[common.Hash][]byte
+	if s.db.snap != nil {
+		// Retrieve the old storage map, if available, create a new one otherwise
+		storage = s.db.snapStorage[s.addrHash]
+		if storage == nil {
+			storage = make(map[common.Hash][]byte)
+			s.db.snapStorage[s.addrHash] = storage
+		}
 	}
 	// Insert all the pending updates into the trie
 	tr := s.getTrie(db)
@@ -289,13 +335,18 @@ func (s *stateObject) updateTrie(db Database) Trie {
 		}
 		s.originStorage[key] = value
 
+		var v []byte
 		if (value == common.Hash{}) {
 			s.setError(tr.TryDelete(key[:]))
-			continue
+		} else {
+			// Encoding []byte cannot fail, ok to ignore the error.
+			v, _ = rlp.EncodeToBytes(common.TrimLeftZeroes(value[:]))
+			s.setError(tr.TryUpdate(key[:], v))
 		}
-		// Encoding []byte cannot fail, ok to ignore the error.
-		v, _ := rlp.EncodeToBytes(common.TrimLeftZeroes(value[:]))
-		s.setError(tr.TryUpdate(key[:], v))
+		// If state snapshotting is active, cache the data til commit
+		if storage != nil {
+			storage[crypto.Keccak256Hash(key[:])] = v // v will be nil if value is 0x00
+		}
 	}
 	if len(s.pendingStorage) > 0 {
 		s.pendingStorage = make(Storage)
@@ -305,8 +356,10 @@ func (s *stateObject) updateTrie(db Database) Trie {
 
 // UpdateRoot sets the trie root to the current root hash of
 func (s *stateObject) updateRoot(db Database) {
-	s.updateTrie(db)
-
+	// If nothing changed, don't bother with hashing anything
+	if s.updateTrie(db) == nil {
+		return
+	}
 	// Track the amount of time wasted on hashing the storge trie
 	if metrics.EnabledExpensive {
 		defer func(start time.Time) { s.db.StorageHashes += time.Since(start) }(time.Now())
@@ -317,7 +370,10 @@ func (s *stateObject) updateRoot(db Database) {
 // CommitTrie the storage trie of the object to db.
 // This updates the trie root.
 func (s *stateObject) CommitTrie(db Database) error {
-	s.updateTrie(db)
+	// If nothing changed, don't bother with hashing anything
+	if s.updateTrie(db) == nil {
+		return nil
+	}
 	if s.dbErr != nil {
 		return s.dbErr
 	}
@@ -383,6 +439,13 @@ func (s *stateObject) deepCopy(db *StateDB) *stateObject {
 	stateObject.suicided = s.suicided
 	stateObject.dirtyCode = s.dirtyCode
 	stateObject.deleted = s.deleted
+
+	// stage1-substate: deepCopy stateObject.ResearchTouched
+	stateObject.ResearchTouched = make(map[common.Hash]struct{})
+	for key := range s.ResearchTouched {
+		stateObject.ResearchTouched[key] = struct{}{}
+	}
+
 	return stateObject
 }
 
@@ -409,6 +472,23 @@ func (s *stateObject) Code(db Database) []byte {
 	}
 	s.code = code
 	return code
+}
+
+// CodeSize returns the size of the contract code associated with this object,
+// or zero if none. This methos is an almost mirror of Code, but uses a cache
+// inside the database to avoid loading codes seen recently.
+func (s *stateObject) CodeSize(db Database) int {
+	if s.code != nil {
+		return len(s.code)
+	}
+	if bytes.Equal(s.CodeHash(), emptyCodeHash) {
+		return 0
+	}
+	size, err := db.ContractCodeSize(s.addrHash, common.BytesToHash(s.CodeHash()))
+	if err != nil {
+		s.setError(fmt.Errorf("can't load code size %x: %v", s.CodeHash(), err))
+	}
+	return size
 }
 
 func (s *stateObject) SetCode(codeHash common.Hash, code []byte) {

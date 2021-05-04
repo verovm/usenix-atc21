@@ -22,15 +22,20 @@ import (
 	"math/big"
 	"os"
 
+	"github.com/ethereum/go-ethereum/cmd/evm/internal/t8ntool"
 	"github.com/ethereum/go-ethereum/cmd/utils"
+	"github.com/ethereum/go-ethereum/internal/flags"
 	"gopkg.in/urfave/cli.v1"
+
+	// stage1-substate: import evm/research
+	"github.com/ethereum/go-ethereum/cmd/evm/research"
 )
 
 var gitCommit = "" // Git SHA1 commit hash of the release (set via linker flags)
 var gitDate = ""
 
 var (
-	app = utils.NewApp(gitCommit, gitDate, "the evm command line interface")
+	app = flags.NewApp(gitCommit, gitDate, "the evm command line interface")
 
 	DebugFlag = cli.BoolFlag{
 		Name:  "debug",
@@ -79,9 +84,17 @@ var (
 		Name:  "input",
 		Usage: "input for the EVM",
 	}
+	InputFileFlag = cli.StringFlag{
+		Name:  "inputfile",
+		Usage: "file containing input for the EVM",
+	}
 	VerbosityFlag = cli.IntFlag{
 		Name:  "verbosity",
 		Usage: "sets the verbosity level",
+	}
+	BenchFlag = cli.BoolFlag{
+		Name:  "bench",
+		Usage: "benchmark the execution",
 	}
 	CreateFlag = cli.BoolFlag{
 		Name:  "create",
@@ -111,6 +124,14 @@ var (
 		Name:  "nostack",
 		Usage: "disable stack output",
 	}
+	DisableStorageFlag = cli.BoolFlag{
+		Name:  "nostorage",
+		Usage: "disable storage output",
+	}
+	DisableReturnDataFlag = cli.BoolFlag{
+		Name:  "noreturndata",
+		Usage: "disable return data output",
+	}
 	EVMInterpreterFlag = cli.StringFlag{
 		Name:  "vm.evm",
 		Usage: "External EVM configuration (default = built-in interpreter)",
@@ -118,8 +139,104 @@ var (
 	}
 )
 
+var stateTransitionCommand = cli.Command{
+	Name:    "transition",
+	Aliases: []string{"t8n"},
+	Usage:   "executes a full state transition",
+	Action:  t8ntool.Main,
+	Flags: []cli.Flag{
+		t8ntool.TraceFlag,
+		t8ntool.TraceDisableMemoryFlag,
+		t8ntool.TraceDisableStackFlag,
+		t8ntool.TraceDisableReturnDataFlag,
+		t8ntool.OutputAllocFlag,
+		t8ntool.OutputResultFlag,
+		t8ntool.InputAllocFlag,
+		t8ntool.InputEnvFlag,
+		t8ntool.InputTxsFlag,
+		t8ntool.ForknameFlag,
+		t8ntool.ChainIDFlag,
+		t8ntool.RewardFlag,
+		t8ntool.VerbosityFlag,
+	},
+}
+
+// stage1-substate: t8n-substate command
+var stateTransitionSubstateCommand = cli.Command{
+	Action:    research.TransitionSubstate,
+	Name:      "t8n-substate",
+	Aliases:   []string{"t8n-substate"},
+	Usage:     "executes full state transitions and check output consistency",
+	ArgsUsage: "<blockNumFirst> <blockNumLast>",
+	Flags: []cli.Flag{
+		research.WorkersFlag,
+		research.SkipTransferTxsFlag,
+		research.SkipCallTxsFlag,
+		research.SkipCreateTxsFlag,
+	},
+	Description: `
+The transition-substate (t8n-substate) command requires
+two arguments: <blockNumFirst> <blockNumLast>
+<blockNumFirst> and <blockNumLast> are the first and
+last block of the inclusive range of blocks to replay transactions.`,
+}
+
+// stage1-substate: dump-substate command
+var dumpSubstateCommand = cli.Command{
+	Action:    research.DumpSubstate,
+	Name:      "dump-substate",
+	Usage:     "dump a range of substates into target LevelDB",
+	ArgsUsage: "<targetPath> <blockNumFirst> <blockNumLast>",
+	Flags: []cli.Flag{
+		research.WorkersFlag,
+	},
+	Description: `
+The dump-substate command requires three arguments:
+<targetPath> <blockNumFirst> <blockNumLast>
+<targetPath> is the target LevelDB where to dump substate.
+<blockNumFirst> and <blockNumLast> are the first and
+last block of the inclusive range of blocks to replay transactions.`,
+}
+
+// stage1-substate: size-substate command
+var sizeSubstateCommand = cli.Command{
+	Action:    research.SizeSubstate,
+	Name:      "size-substate",
+	Usage:     "calculate size of decompressed values in substate DB",
+	ArgsUsage: "<blockNumFirst> <blockNumLast>",
+	Flags:     []cli.Flag{},
+	Description: `
+The size-substate command requires two arguments:
+<blockNumFirst> <blockNumLast>
+<blockNumFirst> and <blockNumLast> are the first and
+last block of the inclusive range of blocks to replay transactions.`,
+}
+
+// stage1-substate: replay-fork command
+var replayForkCommand = cli.Command{
+	Action:    research.ReplayFork,
+	Name:      "replay-fork",
+	Usage:     "executes and check output consistency of all transactions in the range with the given hard-fork",
+	ArgsUsage: "<blockNumFirst> <blockNumLast>",
+	Flags: []cli.Flag{
+		research.WorkersFlag,
+		research.SkipTransferTxsFlag,
+		research.SkipCallTxsFlag,
+		research.SkipCreateTxsFlag,
+		research.HardForkFlag,
+	},
+	Description: `
+The replay-fork command requires two arguments:
+<blockNumFirst> <blockNumLast>
+
+<blockNumFirst> and <blockNumLast> are the first and
+last block of the inclusive range of blocks to replay transactions.
+--hard-fork parameter is recommended for this command.`,
+}
+
 func init() {
 	app.Flags = []cli.Flag{
+		BenchFlag,
 		CreateFlag,
 		DebugFlag,
 		VerbosityFlag,
@@ -130,6 +247,7 @@ func init() {
 		ValueFlag,
 		DumpFlag,
 		InputFlag,
+		InputFileFlag,
 		MemProfileFlag,
 		CPUProfileFlag,
 		StatDumpFlag,
@@ -139,6 +257,8 @@ func init() {
 		ReceiverFlag,
 		DisableMemoryFlag,
 		DisableStackFlag,
+		DisableStorageFlag,
+		DisableReturnDataFlag,
 		EVMInterpreterFlag,
 	}
 	app.Commands = []cli.Command{
@@ -146,12 +266,26 @@ func init() {
 		disasmCommand,
 		runCommand,
 		stateTestCommand,
+		stateTransitionCommand,
+		// stage1-substate: transition-substate (t8n-substate) command
+		stateTransitionSubstateCommand,
+		// stage1-substate: dump-substate command
+		dumpSubstateCommand,
+		// stage1-substate: size-substate command
+		sizeSubstateCommand,
+		// stage1-substate: replay-fork command
+		replayForkCommand,
 	}
+	cli.CommandHelpTemplate = flags.OriginCommandHelpTemplate
 }
 
 func main() {
 	if err := app.Run(os.Args); err != nil {
+		code := 1
+		if ec, ok := err.(*t8ntool.NumberedError); ok {
+			code = ec.Code()
+		}
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		os.Exit(code)
 	}
 }

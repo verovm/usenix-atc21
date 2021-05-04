@@ -33,6 +33,7 @@ var Modules = map[string]string{
 	"swarmfs":    SwarmfsJs,
 	"txpool":     TxpoolJs,
 	"les":        LESJs,
+	"lespay":     LESPayJs,
 }
 
 const ChequebookJs = `
@@ -74,7 +75,7 @@ web3._extend({
 			name: 'getSnapshot',
 			call: 'clique_getSnapshot',
 			params: 1,
-			inputFormatter: [null]
+			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'getSnapshotAtHash',
@@ -85,7 +86,7 @@ web3._extend({
 			name: 'getSigners',
 			call: 'clique_getSigners',
 			params: 1,
-			inputFormatter: [null]
+			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'getSignersAtHash',
@@ -101,6 +102,11 @@ web3._extend({
 			name: 'discard',
 			call: 'clique_discard',
 			params: 1
+		}),
+		new web3._extend.Method({
+			name: 'status',
+			call: 'clique_status',
+			params: 0
 		}),
 	],
 	properties: [
@@ -167,8 +173,8 @@ web3._extend({
 		new web3._extend.Method({
 			name: 'exportChain',
 			call: 'admin_exportChain',
-			params: 1,
-			inputFormatter: [null]
+			params: 3,
+			inputFormatter: [null, null, null]
 		}),
 		new web3._extend.Method({
 			name: 'importChain',
@@ -222,6 +228,12 @@ const DebugJs = `
 web3._extend({
 	property: 'debug',
 	methods: [
+		new web3._extend.Method({
+			name: 'accountRange',
+			call: 'debug_accountRange',
+			params: 6,
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter, null, null, null, null, null],
+		}),
 		new web3._extend.Method({
 			name: 'printBlock',
 			call: 'debug_printBlock',
@@ -444,6 +456,11 @@ web3._extend({
 			call: 'debug_getModifiedAccountsByHash',
 			params: 2,
 			inputFormatter:[null, null],
+		}),
+		new web3._extend.Method({
+			name: 'freezeClient',
+			call: 'debug_freezeClient',
+			params: 1,
 		}),
 	],
 	properties: []
@@ -798,6 +815,31 @@ web3._extend({
 			call: 'les_getCheckpoint',
 			params: 1
 		}),
+		new web3._extend.Method({
+			name: 'clientInfo',
+			call: 'les_clientInfo',
+			params: 1
+		}),
+		new web3._extend.Method({
+			name: 'priorityClientInfo',
+			call: 'les_priorityClientInfo',
+			params: 3
+		}),
+		new web3._extend.Method({
+			name: 'setClientParams',
+			call: 'les_setClientParams',
+			params: 2
+		}),
+		new web3._extend.Method({
+			name: 'setDefaultParams',
+			call: 'les_setDefaultParams',
+			params: 1
+		}),
+		new web3._extend.Method({
+			name: 'addBalance',
+			call: 'les_addBalance',
+			params: 3
+		}),
 	],
 	properties:
 	[
@@ -808,6 +850,41 @@ web3._extend({
 		new web3._extend.Property({
 			name: 'checkpointContractAddress',
 			getter: 'les_getCheckpointContractAddress'
+		}),
+		new web3._extend.Property({
+			name: 'serverInfo',
+			getter: 'les_serverInfo'
+		}),
+	]
+});
+`
+
+const LESPayJs = `
+web3._extend({
+	property: 'lespay',
+	methods:
+	[
+		new web3._extend.Method({
+			name: 'distribution',
+			call: 'lespay_distribution',
+			params: 2
+		}),
+		new web3._extend.Method({
+			name: 'timeout',
+			call: 'lespay_timeout',
+			params: 2
+		}),
+		new web3._extend.Method({
+			name: 'value',
+			call: 'lespay_value',
+			params: 2
+		}),
+	],
+	properties:
+	[
+		new web3._extend.Property({
+			name: 'requestStats',
+			getter: 'lespay_requestStats'
 		}),
 	]
 });
