@@ -32,6 +32,60 @@ TODO - @Seongho
 
 # Contract Fuzzer
 
+This experiment provide results for paper Section 5.3 Fuzzer Use Case. This repository contais two versions of the variants of ContractFuzzer - an original version, and our fork that enables transaction replay. 
+
+The experiment requires 
+* the sub-state databse, 
+* contracs' ABIs, 
+* addresses mapping   (TODO @Yeonso, can you add where and how to get this mappings)
+* [NodeJS Installation](https://nodejs.org/en/download/), 
+* [Docker installation](https://docs.docker.com/get-docker/).
+
+## Contracts' ABIs
+
+The contract's ABIs can be obtained by the script:
+```
+cd ~/usenix-atc21/contract-fuzzer/substate-cf/contract_downloader/
+./download_contracts.sh ~/address-to-substate/ ~/contracts 10
+```
+The parameters of the script tells (1) the directory with the addresses mappings (2) the output dir (3) the size of the batch, the ABIs will be grouped into - in the paper we have used 10. 
+
+Notice that the script will try to download all available ABIs for the whole blockchain. It is possible to interrupt the script anytime earlier and continue the experiment on a smaller dataset. In the paper, we have dowloaed tens of ABIs. 
+
+## Build Docker Images
+
+This repository contains docker images to simplify run of the experiments. Build the images by following commands:
+
+```
+cd ~/usenix-atc21/contract-fuzzer/original-cf/
+docker build -t contractfuzzer-original-experiment .
+
+cd ~/usenix-atc21/contract-fuzzer/substate-cf/
+docker build -t contractfuzzer-experiment .
+
+cd ~/usenix-atc21/contract-fuzzer/substate-cf/contract_experiments/
+docker build -t cf-experiment-master  .
+```
+
+## Run the Experiment
+
+Now the experiment may be triggered for the original contract fuzzer:
+```
+cd ~/usenix-atc21/contract-fuzzer/original-cf/contract_experiments/
+```
+Edit the docker compose file via a text editor and update the following lines to contain correct paths on your system - modify only the path before colon:
+```
+   - /opt/cf-experiments/contracts-original/:/contracts     # Directory with contracs's ABIs downloaded by the script above
+   - /opt/cf-experiments/address-to-substate/:/addresses    # Addresses mappings
+   - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database
+   - /opt/cf-experiments/reporter/:/reporter                # ContractFuzzer's directory for logs
+```
+
+The experiment may be now invoked:
+```
+ docker-compose up
+ ```
+
 # Hard Fork Assesment
 
 TODO - @Yeonsoo
