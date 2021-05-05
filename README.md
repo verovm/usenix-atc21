@@ -94,7 +94,8 @@ The experiment may be now invoked:
  CF_master.1  | Next task is 10 Index: 2/1165
  CF_master.1  | Speed:  diffTime: 4.0002, finishedTasks: 10, speed: 2.4998750062496873
  ```
- The running experiment may be interrupted by typing
+ After some time of the experiment run, the value of the speed stabilises and it is used in the paper in Table 4: ContractFuzzer — performance improvements, first row.
+ The running experiment may be interrupted by typing:
  ```
  docker stack rm CF
  ```
@@ -112,7 +113,8 @@ The experiment may be now invoked:
    deploy:
       replicas: 1    # Numner of parallel executions
  ```
- 
+
+The same as in the previous experiment, the speed is monitored and the results are used for Table 4: ContractFuzzer — performance improvements, second and next rows. The number of parallel tasks in the first column matches to the number of selected ```replicas```.
 
 # Hard Fork Assesment
 
