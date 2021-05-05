@@ -67,24 +67,52 @@ cd ~/usenix-atc21/contract-fuzzer/substate-cf/contract_experiments/
 docker build -t cf-experiment-master  .
 ```
 
-## Run the Experiment
+## Run the Experiment - Original Contract Fuzzer
 
 Now the experiment may be triggered for the original contract fuzzer:
 ```
 cd ~/usenix-atc21/contract-fuzzer/original-cf/contract_experiments/
 ```
-Edit the docker compose file via a text editor and update the following lines to contain correct paths on your system - modify only the path before colon:
+Edit the ```docker-compose.yaml``` file via a text editor and update the following lines to contain correct paths on your system (modify only the path before colon):
 ```
    - /opt/cf-experiments/contracts-original/:/contracts     # Directory with contracs's ABIs downloaded by the script above
    - /opt/cf-experiments/address-to-substate/:/addresses    # Addresses mappings
    - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database
-   - /opt/cf-experiments/reporter/:/reporter                # ContractFuzzer's directory for logs
 ```
 
 The experiment may be now invoked:
 ```
- docker-compose up
+ docker swarm init
+ docker stack deploy -c  docker-compose.yaml CF
  ```
+ These commands run the experiment as docker servics. Periodically monitor log, which will contain speed of executions. 
+ ```
+ docker service logs CF_master
+ ```
+ This will show for instance:
+ ```
+ CF_master.1  | Next task is 10 Index: 2/1165
+ CF_master.1  | Speed:  diffTime: 4.0002, finishedTasks: 10, speed: 2.4998750062496873
+ ```
+ The running experiment may be interrupted by typing
+ ```
+ docker stack rm CF
+ ```
+ ## Run the Experiment - Contract Fuzzer with Substate Reply
+ 
+ Go to the directory 
+ ```
+ cd ~/usenix-atc21/contract-fuzzer/substate-cf/contract_experiments
+ ```
+ and repeat the same steps as in the previous experiments. Now the ContractFuzzer will use contracts data from the substate database via the Replay tool. 
+ 
+ Edit the ```docker-compose.yaml``` file via a text editor and update the following lines to change the number of parallel executions. After each edit, run the experiment again. 
+ 
+ ```
+   deploy:
+      replicas: 1    # Numner of parallel executions
+ ```
+ 
 
 # Hard Fork Assesment
 
