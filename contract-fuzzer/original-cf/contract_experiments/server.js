@@ -89,7 +89,7 @@ function server() {
     speedWatchTimer();
 
     const options = { 'flag': 'a+' }
-    const lastTaskIndex = fs.readFileSync("./out/lastTask.csv", options);
+    // const lastTaskIndex = fs.readFileSync("./out/lastTask.csv", options);
     let index = 0;
     // find last index
     if (lastTaskIndex.length > 0)
