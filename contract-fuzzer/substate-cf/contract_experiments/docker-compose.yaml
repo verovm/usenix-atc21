@@ -16,7 +16,7 @@ services:
           - cf:/out/
 
     cf:
-        image: contractfuzzer
+        image: contractfuzzer-experiment
         networks:
             - app-tier
         volumes:
