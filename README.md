@@ -2,7 +2,7 @@
 
 This repository contains all materials used for experiments in the paper:
 
-**Yeonsoo Kim, Seongho Jeong, Kamil Jezek, Bernd Burgstaller, and Bernhard Scholz**: _An Off-The-Chain Execution Environment for Scalable Testing and Profiling of Smart Contracts_,  ACT Usenix 2021
+**Yeonsoo Kim, Seongho Jeong, Kamil Jezek, Bernd Burgstaller, and Bernhard Scholz**: _An Off-The-Chain Execution Environment for Scalable Testing and Profiling of Smart Contracts_,  ATC Usenix 2021
 
 These materials may be used for relplication studies, follow-up research, etc. The following sections contain information for three use cases from the paper. 
 
