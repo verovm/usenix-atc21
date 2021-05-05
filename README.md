@@ -85,11 +85,12 @@ The experiment may be now invoked:
  docker swarm init
  docker stack deploy -c  docker-compose.yaml CF
  ```
- These commands run the experiment as docker servics. Periodically monitor log, which will contain speed of executions. 
+ These commands run the experiment as docker servics. 
+ Periodically monitor log, which will contain speed of executions: 
  ```
  docker service logs CF_master
  ```
- This will show for instance:
+ This will show for instance an output:
  ```
  CF_master.1  | Next task is 10 Index: 2/1165
  CF_master.1  | Speed:  diffTime: 4.0002, finishedTasks: 10, speed: 2.4998750062496873
