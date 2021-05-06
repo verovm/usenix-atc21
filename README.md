@@ -232,6 +232,35 @@ For example, to assess Byzantium hard fork activated at block 4,370,000:
 evm replay-fork 1 4369999 --skip-transfer-txs --skip-create-txs --hard-fork 4370000
 ```
 
+Note that Istanbul hard fork is activated at block 9,069,000, while we replayed transactions in 9M blocks:
+```bash
+evm replay-fork 1 9000000 --skip-transfer-txs --skip-create-txs --hard-fork 9069000
+```
+
+After replayed all transactions, `evm replay-fork` prints numbers and types of errors like:
+```
+stage1-substate: ReplayFork: =    303300443 total #tx
+stage1-substate: ReplayFork: =       193524 invalid jump destination
+stage1-substate: ReplayFork: =       599698 invalid opcode: opcode 0xfe not defined
+stage1-substate: ReplayFork: =      3061728 execution reverted
+stage1-substate: ReplayFork: =       430290 invalid alloc in replay-fork
+stage1-substate: ReplayFork: =    207742570 more gas in replay-fork
+stage1-substate: ReplayFork: =     56251999 less gas in replay-fork
+stage1-substate: ReplayFork: =     11108391 misc in replay-fork
+stage1-substate: ReplayFork: =     23912243 out of gas
+```
+
+| `evm replay-fork` error                 | Table 6 column |
+|-----------------------------------------|-----------------------------------------|
+| invalid jump destination                | EVM runtime exception - Invalid JUMP    |
+| invalid opcode: opcode 0xfe not defined | EVM runtime exception - Invalid opcode  |
+| execution reverted                      | EVM runtime exception - Reverted        |
+| invalid alloc in replay-fork            | Output Changed                          |
+| misc in replay-fork                     | Output Changed                          |
+| out of gas                              | Gas usage changed - Out-of-gas          |
+| more gas in replay-fork                 | Gas usage changed - Increased           |
+| less gas in replay-fork                 | Gas usage changed - Decreased           |
+
 [replay-fork-0-9M.sh](./hard-fork/replay-fork-0-9M.sh) is a bash script to assess all hard forks activated before block 9,000,000 with CALL transactions (contract invocations) in initial 9M blocks.
 
 ```bash
