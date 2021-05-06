@@ -75,9 +75,9 @@ cd ~/usenix-atc21/contract-fuzzer/original-cf/contract_experiments/
 ```
 Edit the ```docker-compose.yaml``` file via a text editor and update the following lines to contain correct paths on your system - absolute paths must be used (modify only the path before colon):
 ```
-   - /opt/cf-experiments/contracts-original/:/contracts     # Directory with contracs's ABIs downloaded by the script above
+   - /opt/cf-experiments/contracts-original/:/contracts     # Directory with contracs's ABIs, must point to /absolute/path//usenix-atc21/contract-fuzzer/contracts-original
    - /opt/cf-experiments/address-to-substate/:/addresses    # Addresses mappings
-   - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database, must point to /absolute/path//usenix-atc21/contract-fuzzer/contracts-original
+   - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database
 ```
 
 The experiment may be now invoked via docker:
@@ -108,12 +108,12 @@ The experiment may be now invoked via docker:
  ```
  and repeat the same steps as in the previous experiments. Now the ContractFuzzer will use contracts data from the substate database via the Replay tool. 
  
- Edit the ```docker-compose.yaml``` file via a text editor and update again the paths:
+ Edit the ```docker-compose.yaml``` file via a text editor and update again the paths (notice that the paths to contracts will be different than in the first experiment):
  
  ```
-   - /opt/cf-experiments/contracts-original/:/contracts     # Directory with contracs's ABIs downloaded by the script above
+   - /opt/cf-experiments/contracts/:/contracts     # Directory with contracs's ABIs downloaded by the script above, must point to ABIs downloaded by the script /download_contracts.sh
    - /opt/cf-experiments/address-to-substate/:/addresses    # Addresses mappings
-   - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database, must point to ABIs downloaded by the script /download_contracts.sh 
+   - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database 
 ```
  Furthermore, change the number of parallel executions. After each edit, run the experiment again. 
  
