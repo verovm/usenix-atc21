@@ -54,11 +54,11 @@ mv stage1-substate-0-9M stage1-substate
 
 # Scalability of Substate Replayer
 
-This experiment provides results of section 5.1 Scalability of Substate Replayer which compares time and space required to replay transactions in 9M blocks using Geth full node and substate replayer.
+Following experiments provide results of Table 2-3 and Figure 6 in section 5.1 Scalability of Substate Replayer which compares time and space required to replay transactions in 9M blocks using Geth full node and substate replayer.
 
-## Run the Experiment - Geth full node
+## Geth Full Node - Time and Space
 
-This experiment replays transactions with `geth import` command. `geth import` reads and execute transactsion from the given blockchain file. To measure single thread performance in block processing, `--cache.noprefetch` option is given. Block import time and maximum Geth database size of each 1M blocks will be saved in `.log` files.
+This experiment measures time and space to replay transactions with Geth full node in Table 2-3. To measure single thread performance in block processing, `--cache.noprefetch` option is given. Block import time and maximum Geth database size of each 1M blocks will be saved in `.log` files.
 
 ```bash
 # build geth
@@ -73,9 +73,9 @@ du -s geth.ethereum >> geth-1-2M.log
 ...
 ```
 
-## Run the Experiment - Substate Replayer
+## Substate Replayer - Time
 
-Substate replayer is implemented in `evm transition-substate` command (`evm t8n-substate`). Substate replayer loads substates of a given block range from `./stage1-substate/` and replay transactions. If substate replayer finds that the replay output is different from the expected output, it will returns an error immediately.
+This experiment measures execution time of single- and multi-threaded substate replayer in Table 3 and Figure 6. Substate replayer has `evm transition-substate` command (`evm t8n-substate`) that loads substates of a given block range from `./stage1-substate/` and replay transactions. If substate replayer finds that the replay output is different from the expected output, it will returns an error immediately.
 
 For example, if you want to replay trasnactions from 46147 to 50000 with 8 replay threads:
 ```bash
@@ -93,10 +93,26 @@ For more command line options, run `evm t8n-substate --help`
 cd ./record-replay/go-ethereum/
 make all
 
-# measure replayer performane and print data in CSV
+# measure replayer performance and print data in CSV
 cd ../
 ./evm-t8n-substate-0-9M.sh
 ./evm-t8n-substate-csv.py
+```
+
+## Substate Replayer - Space
+
+This experiment measures space required to replay transactions with substate replayer in Table 2. Substate replayer has `evm dump-substate` that reads `./stage1-substate/` and creates a database copy with substates found in a given range of blocks.
+
+For example, to measure space required to replay transactions in 2-3M blocks,
+```bash
+# build substate replayer (evm)
+cd ./record-replay/go-ethereum/
+make all
+
+# copy substates of 2-3M blocks and measure database size
+cd ../
+evm dump-substate ./stage1-substate-2-3M/ 2000001 3000000
+du -s ./stage1-substate-2-3M/
 ```
 
 # Metrics Use Case
@@ -209,7 +225,7 @@ Notice that all replicas use the same sub-state database mounted via a file moun
 
 # Hard Fork Assesment Use Case
 
-This experiment provides results of section 5.4 Hard Fork Assessment. This experiment assess hard forks by replaying transactions in the same context they were executed except the protocols changed by the new hard fork.
+This experiment provides results of Table 5 in section 5.4 Hard Fork Assessment. This experiment assess hard forks by replaying transactions in the same context they were executed except the protocols changed by the new hard fork.
 
 For example, to assess Byzantium hard fork activated at block 4,370,000:
 ```bash
