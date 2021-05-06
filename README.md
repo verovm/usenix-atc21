@@ -101,7 +101,15 @@ cd ../
 
 # Metrics Use Case
 
-TODO - @Seongho
+The metrics use case analyzes transactions by generating a graph of instruction flow. It will count the number of live instructions and live gases.
+You can produce a result of metrics as a CSV file for 9M blocks:
+```
+evm t8n-substate 1 9000000 --skip-transfer-txs --skip-create-txs --log-file result.csv
+```
+If you want to visualize a value graph, following command will generate a PNG image for the first transaction executed in the block 2000000.
+```
+evm t8n-substate 2000000 2000000 --workers 1 --graph
+```
 
 # Contract Fuzzer Use Case
 
