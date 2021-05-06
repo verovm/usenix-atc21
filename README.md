@@ -77,7 +77,7 @@ Edit the ```docker-compose.yaml``` file via a text editor and update the followi
 ```
    - /opt/cf-experiments/contracts-original/:/contracts     # Directory with contracs's ABIs downloaded by the script above
    - /opt/cf-experiments/address-to-substate/:/addresses    # Addresses mappings
-   - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database
+   - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database, must point to /absolute/path//usenix-atc21/contract-fuzzer/contracts-original
 ```
 
 The experiment may be now invoked via docker:
@@ -108,7 +108,14 @@ The experiment may be now invoked via docker:
  ```
  and repeat the same steps as in the previous experiments. Now the ContractFuzzer will use contracts data from the substate database via the Replay tool. 
  
- Edit the ```docker-compose.yaml``` file via a text editor and update the following lines to change the number of parallel executions. After each edit, run the experiment again. 
+ Edit the ```docker-compose.yaml``` file via a text editor and update again the paths:
+ 
+ ```
+   - /opt/cf-experiments/contracts-original/:/contracts     # Directory with contracs's ABIs downloaded by the script above
+   - /opt/cf-experiments/address-to-substate/:/addresses    # Addresses mappings
+   - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database, must point to ABIs downloaded by the script /download_contracts.sh 
+```
+ Furthermore, change the number of parallel executions. After each edit, run the experiment again. 
  
  ```
    deploy:
