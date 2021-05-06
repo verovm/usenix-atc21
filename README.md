@@ -272,14 +272,3 @@ make all
 cd ../
 ./replay-fork-0-9M.sh
 ```
-
-# usenix-atc21
-
-1. go-ethereum/
-
-Original go-ethereum v1.9.18 source code
-
-2. record-replay/
-
-
-
