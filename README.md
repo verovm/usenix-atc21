@@ -24,8 +24,8 @@ make geth
 # press ctrl-c to stop geth sync when it reached the desired block height
 ./build/bin/geth --datadir /path/to/geth.datadir --syncmode fast --gcmode full
 
-# export first 9M blocks into a file (0-9M.blockchain)
-./build/bin/geth --datadir /path/to/geth.datadir --syncmode fast --gcmode full 0-9M.blockchain 1 9000000
+# export from block 2,000,001 to 3,000,000 (total 1M blocks)
+./build/bin/geth --datadir /path/to/geth.datadir --syncmode fast --gcmode full 2-3M.blockchain 2000001 3000000
 ```
 
 ## Generate Database
@@ -42,10 +42,9 @@ make geth
 ```
 
 ## Pre-existing Blockchain and Database Snapshot
-
-Exported blockchain file of 9M blocks (0-9M.blockchain): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (104 GB)
-
-Substate DB of 9M blocks (stage1-substate-0-9M.tar.zst): [gdrive download](https://drive.google.com/file/d/1jl6vdMea5ROKdrTUJUk8lh5NL48Do9xJ/view?usp=sharing) (139 GB, decompressed size: 285GB)
+* Exported blockchain files (0-1M.blockchain, 1-2M.blockchain, ...): [gdrive directory](https://drive.google.com/drive/folders/132VLKpxPfulbcg36hiY6C1Sef3yXAirG?usp=sharing) (104 GB)
+* Exported blockchain file of 9M blocks (0-9M.blockchain): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (104 GB)
+* Substate DB of 9M blocks (stage1-substate-0-9M.tar.zst): [gdrive download](https://drive.google.com/file/d/1jl6vdMea5ROKdrTUJUk8lh5NL48Do9xJ/view?usp=sharing) (139 GB, decompressed size: 285GB)
 
 ```bash
 # untar substate DB
@@ -53,44 +52,41 @@ tar -xavf stage1-substate-0-9M.tar.zst
 mv stage1-substate-0-9M stage1-substate
 ```
 
-# Substate Replayer
+# Scalability of Substate Replayer
+
+This experiment provides results of section 5.1 Scalability of Substate Replayer which compares time and space required to replay transactions in 9M blocks using Geth full node and substate replayer.
+
+## Run the Experiment - Geth full node
+
+This experiment replays transactions with `geth import` command. `geth import` reads and execute transactsion from the given blockchain file. To measure single thread performance in block processing, `--cache.noprefetch` option is given. Block import time and maximum Geth database size of each 1M blocks will be saved in `.log` files.
+
+```bash
+# build geth
+cd ./go-ethereum/
+make geth
+
+# measure geth block import time and size
+./build/bin/geth --datadir geth.ethereum --cache.noprefetch import 0-1M.blockchain 2>&1 | tee -a geth-0-1M.log
+du -s geth.ethereum >> geth-0-1M.log
+./build/bin/geth --datadir geth.ethereum --cache.noprefetch import 8-9M.blockchain 2>&1 | tee -a geth-1-2M.log
+du -s geth.ethereum >> geth-1-2M.log
+...
+```
+
+## Run the Experiment - Substate Replayer
 
 Substate replayer is implemented in `evm transition-substate` command (`evm t8n-substate`). Substate replayer loads substates of a given block range from `./stage1-substate/` and replay transactions. If substate replayer finds that the replay output is different from the expected output, it will returns an error immediately.
 
-For example, if you want to replay trasnactions from 46147 to 50000:
+For example, if you want to replay trasnactions from 46147 to 50000 with 8 replay threads:
 ```bash
-evm t8n-substate 46147 50000
+evm t8n-substate 46147 50000 --workers 8
 ```
 
-Here are command line options for `evm t8n-substate`:
-```
-transition-substate [command options] [arguments...]
+For more command line options, run `evm t8n-substate --help`
 
-The transition-substate (t8n-substate) command requires
-two arguments: <blockNumFirst> <blockNumLast>
-<blockNumFirst> and <blockNumLast> are the first and
-last block of the inclusive range of blocks to dump substates.
+[evm-t8n-substate-0-9M.sh](./record-replay/evm-t8n-substate-0-9M.sh) is a bash script that runs substate replayer with different numbers of threads.
 
-OPTIONS:
-   --workers value                    Number of workers that execute transactions in parallel (default: 4)
-   --skip-transfer-txs                Skip executing transactions that only transfer ETH
-   --skip-call-txs                    Skip executing CALL transactions to accounts with contract bytecode
-   --skip-create-txs                  Skip executing CREATE transactions
-```
-
-For example, if you want 8 workers to replay transactions except CREATE transactions:
-```bash
-evm t8n-substate 46147 50000 --workers 8 --skip-create-txs
-```
-
-If you want to replay only CREATE transactions:
-```bash
-evm t8n-substate 46147 50000 --skip-transfer-txs --skip-call-txs
-```
-
-[./record-replay/evm-t8n-substate-0-9M.sh](./record-replay/evm-t8n-substate-0-9M.sh) is a bash script that runs substate replayer with different numbers of threads.
-
-[./record-replay/evm-t8n-substate-csv.py](./record-replay/evm-t8n-substate-csv.py) is a python3 script that collects output log files of `evm-t8n-substate-0-9M.sh` and print data in CSV format.
+[evm-t8n-substate-csv.py](./record-replay/evm-t8n-substate-csv.py) is a python3 script that collects output log files of `evm-t8n-substate-0-9M.sh` and print data in CSV format.
 
 ```bash
 # build substate replayer (evm)
@@ -205,14 +201,14 @@ Notice that all replicas use the same sub-state database mounted via a file moun
 
 # Hard Fork Assesment Use Case
 
-This experiment assess hard forks by replaying transactions in the same context they were executed except the protocols changed by the new hard fork.
+This experiment provides results of section 5.4 Hard Fork Assessment. This experiment assess hard forks by replaying transactions in the same context they were executed except the protocols changed by the new hard fork.
 
 For example, to assess Byzantium hard fork activated at block 4,370,000:
 ```bash
 evm replay-fork 1 4369999 --skip-transfer-txs --skip-create-txs --hard-fork 4370000
 ```
 
-[./hard-fork/replay-fork-0-9M.sh](./hard-fork/replay-fork-0-9M.sh) is a bash script that assess all hard forks activated before block 9,000,000 with CALL transactions (contract invocations) in initial 9M blocks.
+[replay-fork-0-9M.sh](./hard-fork/replay-fork-0-9M.sh) is a bash script to assess all hard forks activated before block 9,000,000 with CALL transactions (contract invocations) in initial 9M blocks.
 
 ```bash
 # build evm for hard fork assessment
