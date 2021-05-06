@@ -314,10 +314,10 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		case operation.reverts:
 			return res, ErrExecutionReverted
 		case operation.halts:
-		   if DrawGraph {
-		      callContext.nstack.GenerateGraph("./graph.png")
-		      DrawGraph = false
-		   }
+			if DrawGraph {
+				callContext.nstack.GenerateGraph("./graph.png")
+				DrawGraph = false
+			}
 			return res, nil
 		case !operation.jumps:
 			pc++

@@ -17,8 +17,8 @@
 package vm
 
 import (
-	"sync"
 	"fmt"
+	"sync"
 
 	"github.com/holiman/uint256"
 )

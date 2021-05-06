@@ -95,7 +95,7 @@ func testTwoOperandOp(t *testing.T, tests []TwoOperandTestcase, opFn executionFu
 		env            = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
 		rstack         = newReturnStack()
-		nstack		   = newNodeStack()
+		nstack         = newNodeStack()
 		pc             = uint64(0)
 		evmInterpreter = env.interpreter.(*EVMInterpreter)
 	)
@@ -116,7 +116,7 @@ func testTwoOperandOp(t *testing.T, tests []TwoOperandTestcase, opFn executionFu
 		}
 		nstack.push(xNd)
 		nstack.push(yNd)
-		opFn(&pc, evmInterpreter, &callCtx{nil, stack, rstack, nstack,nil})
+		opFn(&pc, evmInterpreter, &callCtx{nil, stack, rstack, nstack, nil})
 		if len(stack.data) != 1 {
 			t.Errorf("Expected one item on stack after %v, got %d: ", name, len(stack.data))
 		}
@@ -206,7 +206,7 @@ func TestAddMod(t *testing.T) {
 	var (
 		env            = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
-		nstack		   = newNodeStack()
+		nstack         = newNodeStack()
 		evmInterpreter = NewEVMInterpreter(env, env.vmConfig)
 		pc             = uint64(0)
 	)
@@ -546,7 +546,7 @@ func TestOpMstore(t *testing.T) {
 	var (
 		env            = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack, rstack  = newstack(), newReturnStack()
-		nstack		   = newNodeStack()
+		nstack         = newNodeStack()
 		mem            = NewMemory()
 		evmInterpreter = NewEVMInterpreter(env, env.vmConfig)
 	)
@@ -571,7 +571,7 @@ func BenchmarkOpMstore(bench *testing.B) {
 	var (
 		env            = NewEVM(Context{}, nil, params.TestChainConfig, Config{})
 		stack, rstack  = newstack(), newReturnStack()
-		nstack		   = newNodeStack()
+		nstack         = newNodeStack()
 		mem            = NewMemory()
 		evmInterpreter = NewEVMInterpreter(env, env.vmConfig)
 	)

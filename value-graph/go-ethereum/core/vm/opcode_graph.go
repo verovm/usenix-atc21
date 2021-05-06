@@ -389,7 +389,7 @@ var TxIndex int
 var BlockNum uint64
 
 func (st *NodeStack) GenerateGraph(path string) error {
-        i, j := st.countLive()
+	i, j := st.countLive()
 	fmt.Printf("Generated a graph for tx #%d in block #%d\n", TxIndex, BlockNum)
 	fmt.Printf("Total node: %d, Live node: %d\n", i, j)
 

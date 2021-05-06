@@ -8,9 +8,9 @@ import (
 
 // stage1-substate: flags for t8n-substate command
 var (
-        GraphFlag = cli.BoolFlag{
-	   Name: "graph",
-	   Usage: "Generate an image of value-graph for the first transaction",
+	GraphFlag = cli.BoolFlag{
+		Name:  "graph",
+		Usage: "Generate an image of value-graph for the first transaction",
 	}
 	WorkersFlag = cli.IntFlag{
 		Name:  "workers",
