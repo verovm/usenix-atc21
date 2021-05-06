@@ -192,7 +192,7 @@ The experiment may be now invoked via docker:
  CF_master.1  | Next task is 10 Index: 2/1165
  CF_master.1  | Speed:  diffTime: 4.0002, finishedTasks: 10, speed: 2.4998750062496873
  ```
- After some time of the experiment run, the value of the speed stabilises and it is used in the paper in Table 4: ContractFuzzer — performance improvements, first row.
+ After some time of the experiment run, the value of the  ```speed ``` stabilises and it is used in the paper in Table 4: ContractFuzzer — performance improvements, first row.
  The running experiment may be interrupted by typing:
  ```
  docker stack rm CF
