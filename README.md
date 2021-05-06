@@ -26,11 +26,11 @@ tar -xavf stage1-substate-0-9M.tar.zst
 mv stage1-substate-0-9M stage1-substate
 ```
 
-# Metrics
+# Metrics Use Case
 
 TODO - @Seongho
 
-# Contract Fuzzer
+# Contract Fuzzer Use Case
 
 This experiment provide results for paper Section 5.3 Fuzzer Use Case. This repository contais two variants of ContractFuzzer - an original version, and our fork that enables transaction replay. 
 
@@ -126,7 +126,7 @@ The same as in the previous experiment, the speed is monitored and the results a
 
 Notice that all replicas use the same sub-state database mounted via a file mount, and no testnet is needed. 
 
-# Hard Fork Assesment
+# Hard Fork Assesment Use Case
 
 TODO - @Yeonsoo
 
