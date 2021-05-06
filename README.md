@@ -81,11 +81,11 @@ If you want to replay only CREATE transactions:
 ./build/bin/evm t8n-substate 46147 50000 --skip-transfer-txs --skip-call-txs
 ```
 
-# Metrics
+# Metrics Use Case
 
 TODO - @Seongho
 
-# Contract Fuzzer
+# Contract Fuzzer Use Case
 
 This experiment provide results for paper Section 5.3 Fuzzer Use Case. This repository contais two variants of ContractFuzzer - an original version, and our fork that enables transaction replay. 
 
@@ -181,7 +181,7 @@ The same as in the previous experiment, the speed is monitored and the results a
 
 Notice that all replicas use the same sub-state database mounted via a file mount, and no testnet is needed. 
 
-# Hard Fork Assesment
+# Hard Fork Assesment Use Case
 
 TODO - @Yeonsoo
 
