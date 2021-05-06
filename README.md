@@ -14,24 +14,38 @@ All three use cases require pre-recorded substate database. This databse can be 
 
 Our substate recorder/replayer and use cases are implemented based on go-ethereum (geth). Please follow _Building the source_ section of [Geth's README](./go-ethereum/README.md) to build our tools.
 
+## Sync and Export Blockchain in Files
+
+```bash
+# build geth
+cd ./go-ethereum/
+make geth
+
+# press ctrl-c to stop geth sync when it reached the desired block height
+./build/bin/geth --datadir /path/to/geth.datadir --syncmode fast --gcmode full
+
+# export first 9M blocks into a file (0-9M.blockchain)
+./build/bin/geth --datadir /path/to/geth.datadir --syncmode fast --gcmode full 0-9M.blockchain 1 9000000
+```
+
 ## Generate Database
 
 Substate recorder is implemented by modifying `geth import` command which processes blockchain files exported from Geth full node. To generate substate database, import a blockchain file exported from a Geth full node to our substate recorder. Substate recorder will create substate DB in `./stage1-substate/` directory.
 
-Exported blockchain file of 9M blocks (0-9M.blockchain): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (104 GB)
-
 ```bash
-# build geth
-cd ~/usenix-atc21/record-replay/go-ethereum/
+# build recorder
+cd ./record-replay/go-ethereum/
 make geth
 
-# transaction substates will be stored in ./stage1-substate/ directory
-./build/bin/geth --datadir /path/to/geth.ethereum import 0-9M.blockchain
+# record substates in ./stage1-substate/
+./build/bin/geth --datadir /path/to/recorder.datadir import /path/to/0-9M.blockchain
 ```
 
-## Pre-existing Database Snapshot
+## Pre-existing Blockchain and Database Snapshot
 
-Substate DB of 9M blocks: [gdrive download](https://drive.google.com/file/d/1jl6vdMea5ROKdrTUJUk8lh5NL48Do9xJ/view?usp=sharing) (139 GB, decompressed size: 285GB)
+Exported blockchain file of 9M blocks (0-9M.blockchain): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (104 GB)
+
+Substate DB of 9M blocks (stage1-substate-0-9M.tar.zst): [gdrive download](https://drive.google.com/file/d/1jl6vdMea5ROKdrTUJUk8lh5NL48Do9xJ/view?usp=sharing) (139 GB, decompressed size: 285GB)
 
 ```bash
 # untar substate DB
@@ -45,12 +59,7 @@ Substate replayer is implemented in `evm transition-substate` command (`evm t8n-
 
 For example, if you want to replay trasnactions from 46147 to 50000:
 ```bash
-# build geth, evm, ...
-cd ~/usenix-atc21/record-replay/go-ethereum/
-make all
-
-# replay transactions and check whether execution results are correct
-./build/bin/evm t8n-substate 46147 50000
+evm t8n-substate 46147 50000
 ```
 
 Here are command line options for `evm t8n-substate`:
@@ -71,14 +80,27 @@ OPTIONS:
 
 For example, if you want 8 workers to replay transactions except CREATE transactions:
 ```bash
-# 8 workers will replay transactions that invoke bytecode execution
-./build/bin/evm t8n-substate 46147 50000 --workers 8 --skip-create-txs
+evm t8n-substate 46147 50000 --workers 8 --skip-create-txs
 ```
 
 If you want to replay only CREATE transactions:
 ```bash
-# 8 workers will replay transactions that invoke bytecode execution
-./build/bin/evm t8n-substate 46147 50000 --skip-transfer-txs --skip-call-txs
+evm t8n-substate 46147 50000 --skip-transfer-txs --skip-call-txs
+```
+
+[./record-replay/evm-t8n-substate-0-9M.sh](./record-replay/evm-t8n-substate-0-9M.sh) is a bash script that runs substate replayer with different numbers of threads.
+
+[./record-replay/evm-t8n-substate-csv.py](./record-replay/evm-t8n-substate-csv.py) is a python3 script that collects output log files of `evm-t8n-substate-0-9M.sh` and print data in CSV format.
+
+```bash
+# build substate replayer (evm)
+cd ./record-replay/go-ethereum/
+make all
+
+# measure replayer performane and print data in CSV
+cd ../
+./evm-t8n-substate-0-9M.sh
+./evm-t8n-substate-csv.py
 ```
 
 # Metrics Use Case
@@ -92,7 +114,7 @@ This experiment provide results for paper Section 5.3 Fuzzer Use Case. This repo
 The experiment requires 
 * the sub-state database, 
 * contracs' ABIs, 
-* addresses mapping: [gdrive download](https://drive.google.com/file/d/13eTEpu7Bt1XRpKDFFHYNhy_phwuLujGV/view?usp=sharing) (108 MB, decompressed size: 805 MB)
+* addresses mapping (address-to-substate/): [gdrive download](https://drive.google.com/file/d/13eTEpu7Bt1XRpKDFFHYNhy_phwuLujGV/view?usp=sharing) (108 MB, decompressed size: 805 MB)
 * [NodeJS Installation](https://nodejs.org/en/download/), 
 * [Docker installation](https://docs.docker.com/get-docker/).
 
@@ -183,7 +205,24 @@ Notice that all replicas use the same sub-state database mounted via a file moun
 
 # Hard Fork Assesment Use Case
 
-TODO - @Yeonsoo
+This experiment assess hard forks by replaying transactions in the same context they were executed except the protocols changed by the new hard fork.
+
+For example, to assess Byzantium hard fork activated at block 4,370,000:
+```bash
+evm replay-fork 1 4369999 --skip-transfer-txs --skip-create-txs --hard-fork 4370000
+```
+
+[./hard-fork/replay-fork-0-9M.sh](./hard-fork/replay-fork-0-9M.sh) is a bash script that assess all hard forks activated before block 9,000,000 with CALL transactions (contract invocations) in initial 9M blocks.
+
+```bash
+# build evm for hard fork assessment
+cd ./hard-fork/go-ethereum/
+make all
+
+# run hard fork assessments with 9M blocks
+cd ../
+./replay-fork-0-9M.sh
+```
 
 # usenix-atc21
 
