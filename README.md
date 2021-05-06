@@ -32,10 +32,10 @@ TODO - @Seongho
 
 # Contract Fuzzer
 
-This experiment provide results for paper Section 5.3 Fuzzer Use Case. This repository contais two versions of the variants of ContractFuzzer - an original version, and our fork that enables transaction replay. 
+This experiment provide results for paper Section 5.3 Fuzzer Use Case. This repository contais two variants of ContractFuzzer - an original version, and our fork that enables transaction replay. 
 
 The experiment requires 
-* the sub-state databse, 
+* the sub-state database, 
 * contracs' ABIs, 
 * addresses mapping   (TODO @Yeonso, can you add where and how to get this mappings)
 * [NodeJS Installation](https://nodejs.org/en/download/), 
@@ -48,9 +48,9 @@ The contract's ABIs can be obtained by the script:
 cd ~/usenix-atc21/contract-fuzzer/substate-cf/contract_downloader/
 ./download_contracts.sh ~/address-to-substate/ ~/contracts 10
 ```
-The parameters of the script tells (1) the directory with the addresses mappings (2) the output dir (3) the size of the batch, the ABIs will be grouped into - in the paper we have used 10. 
+The parameters of the script tell (1) the directory with the addresses mappings (2) the output dir (3) the size of the batch, the ABIs will be grouped into - in the paper we have used 10. 
 
-Notice that the script will try to download all available ABIs for the whole blockchain. It is possible to interrupt the script anytime earlier and continue the experiment on a smaller dataset. In the paper, we have dowloaed tens of ABIs. 
+Notice that the script will try to download all available ABIs for the whole blockchain. It is possible to interrupt the script anytime earlier and continue the experiment on a smaller dataset. In the paper, we have dowloaed several tens of ABIs. 
 
 ## Build Docker Images
 
@@ -73,20 +73,20 @@ Now the experiment may be triggered for the original contract fuzzer:
 ```
 cd ~/usenix-atc21/contract-fuzzer/original-cf/contract_experiments/
 ```
-Edit the ```docker-compose.yaml``` file via a text editor and update the following lines to contain correct paths on your system (modify only the path before colon):
+Edit the ```docker-compose.yaml``` file via a text editor and update the following lines to contain correct paths on your system - absolute paths must be used (modify only the path before colon):
 ```
    - /opt/cf-experiments/contracts-original/:/contracts     # Directory with contracs's ABIs downloaded by the script above
    - /opt/cf-experiments/address-to-substate/:/addresses    # Addresses mappings
    - /opt/cf-experiments/stage1-substate:/ContractFuzzer/stage1-substate/     # Substate database
 ```
 
-The experiment may be now invoked:
+The experiment may be now invoked via docker:
 ```
  docker swarm init
  docker stack deploy -c  docker-compose.yaml CF
  ```
- These commands run the experiment as docker servics. 
- Periodically monitor log, which will contain speed of executions: 
+ These commands run the experiment as docker services. 
+ Now, periodically monitor logs, which will contain speed of executions, by using the following command: 
  ```
  docker service logs CF_master
  ```
@@ -102,7 +102,7 @@ The experiment may be now invoked:
  ```
  ## Run the Experiment - Contract Fuzzer with Substate Reply
  
- Go to the directory 
+ To run the experiment, go to the directory 
  ```
  cd ~/usenix-atc21/contract-fuzzer/substate-cf/contract_experiments
  ```
@@ -116,6 +116,8 @@ The experiment may be now invoked:
  ```
 
 The same as in the previous experiment, the speed is monitored and the results are used for Table 4: ContractFuzzer — performance improvements, second and next rows. The number of parallel tasks in the first column matches to the number of selected ```replicas```.
+
+Notice that all replicas use the same sub-state database mounted via a file mount, and no testnet is needed. 
 
 # Hard Fork Assesment
 
