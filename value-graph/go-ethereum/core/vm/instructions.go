@@ -389,7 +389,6 @@ func opReturnDataCopy(pc *uint64, interpreter *EVMInterpreter, callContext *call
 	callContext.nstack.createOpComponent(3, RETURNDATACOPY, *pc, cost)
 	node := callContext.nstack.pop()
 	callContext.mtracer.store(node, int64(memOffset.Uint64()), int64(length.Uint64()))
-	//myTODO: Need edge between this and CALL after we can find which CALL used the return data buffer
 	return nil, nil
 }
 
@@ -629,8 +628,6 @@ func opJump(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx, cost 
 		return nil, ErrInvalidJump
 	}
 	callContext.nstack.createOpComponent(1, JUMP, *pc, cost)
-	//node := callContext.nstack.peek()
-	//callContext.jstack.push(node, pos)
 	*pc = pos.Uint64()
 	return nil, nil
 }
@@ -638,8 +635,6 @@ func opJump(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx, cost 
 func opJumpi(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx, cost uint64) ([]byte, error) {
 	pos, cond := callContext.stack.pop(), callContext.stack.pop()
 	callContext.nstack.createOpComponent(2, JUMPI, *pc, cost)
-	//node := callContext.nstack.peek()
-	//callContext.jstack.push(node, pos)
 	if !cond.IsZero() {
 		if !callContext.contract.validJumpdest(&pos) {
 			return nil, ErrInvalidJump
@@ -652,14 +647,6 @@ func opJumpi(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx, cost
 }
 
 func opJumpdest(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx, cost uint64) ([]byte, error) {
-	//if callContext.jstack.len() > 0 && callContext.nstack.len() > 0 {
-	//	node, dest := callContext.jstack.pop()
-	//	if *pc == dest && node == callContext.nstack.peek() {
-	//		callContext.nstack.createOpComponent(0, JUMPDEST, cost)
-	//	} else {
-	//		callContext.nstack.createOpComponent(0, JUMPDEST, cost)
-	//	}
-	//}
 	callContext.nstack.createOpComponent(0, JUMPDEST, *pc, cost)
 	return nil, nil
 }
@@ -974,7 +961,6 @@ func opReturn(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx, cos
 func opRevert(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx, cost uint64) ([]byte, error) {
 	offset, size := callContext.stack.pop(), callContext.stack.pop()
 	ret := callContext.memory.GetPtr(int64(offset.Uint64()), int64(size.Uint64()))
-	//callContext.nstack.revert() //myTODO: reverted instructions should be considered as live or not?
 	callContext.nstack.createOpComponent(2, REVERT, *pc, cost)
 	thisNode := callContext.nstack.pop()
 	mNodes := callContext.mtracer.load(int64(offset.Uint64()), int64(size.Uint64()))

@@ -169,6 +169,7 @@ var stateTransitionSubstateCommand = cli.Command{
 	Usage:     "executes full state transitions and check output consistency",
 	ArgsUsage: "<blockNumFirst> <blockNumLast>",
 	Flags: []cli.Flag{
+		research.GraphFlag,
 		research.WorkersFlag,
 		research.SkipTransferTxsFlag,
 		research.SkipCallTxsFlag,

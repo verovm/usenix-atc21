@@ -91,6 +91,8 @@ func ApplySubstate(ctx *cli.Context, block uint64, tx int, substate *research.Su
 		blockHash = common.Hash{0x13, 0x37}
 		txIndex   = tx
 	)
+	vm.TxIndex = txIndex
+	vm.BlockNum = block
 
 	gaspool.AddGas(pre.Env.GasLimit)
 	vmContext := vm.Context{
@@ -262,6 +264,7 @@ func TransitionSubstate(ctx *cli.Context) error {
 		fmt.Printf("stage1-substate: TransitionSubstate done in %v\n", duration.Round(1*time.Millisecond))
 	}()
 
+	vm.DrawGraph = ctx.Bool(GraphFlag.Name)
 	numWorker := ctx.Int(WorkersFlag.Name)
 	// numProcs + work producer (1) + main thread (1)
 	numProcs := numWorker + 2
@@ -362,7 +365,7 @@ func TransitionSubstate(ctx *cli.Context) error {
 		}
 	}
 
-	fmt.Printf("value-graph: %v,%d,%d\n", last, atomic.LoadUint64(&vm.TotalCount), atomic.LoadUint64(&vm.LiveCount))
+	fmt.Printf("value-graph: %d live nodes in %d total nodes\n", atomic.LoadUint64(&vm.TotalCount), atomic.LoadUint64(&vm.LiveCount))
 	close(vm.Done)
 	return nil
 }

@@ -135,7 +135,6 @@ func (rec *MemoryTracer) load(off int64, l int64) []*Node {
 
 }
 
-//"CALLDATACOPY", "CODECOPY", "EXTCODECOPY", "RETURNDATACOPY"
 var liveOps = []string{"SSTORE", "SELFDESTRUCT", "CREATE", "CREATE2", "RETURN", "REVERT",
 	"LOG0", "LOG1", "LOG2", "LOG3", "LOG4"}
 var callOps = []string{"CALL", "CALLCODE", "DELEGATECALL"}
@@ -211,17 +210,6 @@ func (st *NodeStack) newGraph(draw bool) {
 		st.g = graphviz.New()
 	}
 }
-
-/*func (st *NodeStack) revert() {
-   atomic.AddUint64(&LiveCount, -uint64(st.log.liveInst))
-   st.log.liveInst = 0
-   //myTODO: revert gas
-   nodes := st.graph.Nodes()
-   for nodes.Next() {
-      node := nodes.Node().(*Node)
-      node.islive = false
-   }
-}*/
 
 func (st *NodeStack) GetLog() *CallLog { return &st.log }
 
@@ -388,26 +376,22 @@ func (st *NodeStack) dup(n int, pc uint64, cost uint64) {
 }
 
 func (nd Node) makeLabel() string {
-	//l := ""
-	//if nd.live() && !nd.isHex() {
-	//	l = ".L"
-	//}
-	//str := fmt.Sprintf("%d.%s%s.%d", nd.ID(), nd.op(), l, nd.gas)
 	var str string
 	if nd.op() == "PUSH1" {
 		str = fmt.Sprintf("%d.%s", nd.ID(), "PUSH")
 	} else {
 		str = fmt.Sprintf("%d.%s", nd.ID(), nd.op())
 	}
-	//str += fmt.Sprintf("\npc: %x", nd.pc)
-	if nd.value != nil {
-		//str += fmt.Sprintf("\nvalue: %s", nd.value.value)
-	}
 	return str
 }
 
+var TxIndex int
+var BlockNum uint64
+
 func (st *NodeStack) GenerateGraph(path string) error {
-	fmt.Println("Generating Graph....")
+        i, j := st.countLive()
+	fmt.Printf("Generated a graph for tx #%d in block #%d\n", TxIndex, BlockNum)
+	fmt.Printf("Total node: %d, Live node: %d\n", i, j)
 
 	vgraph, _ := st.g.Graph(graphviz.Directed)
 	vnodes := make([]*cgraph.Node, 0, 2048)
@@ -420,7 +404,6 @@ func (st *NodeStack) GenerateGraph(path string) error {
 		vnode.SetLabel(n.makeLabel())
 		if n.live() && !n.isHex() {
 			if n.op() == "RETURN" || n.op() == "REVERT" {
-				//vnode.SetColor("red")
 				vnode.SetColor("blue")
 			} else {
 				vnode.SetColor("blue")
@@ -454,52 +437,3 @@ func (st *NodeStack) GenerateGraph(path string) error {
 
 	return st.g.RenderFilename(vgraph, graphviz.PNG, path)
 }
-
-/*func (st *NodeStack) createTwoOpComponent(opCode OpCode) error {
-   x, y := st.pop(), st.pop()
-   opNd, err := st.CreateNode(opCode.String())
-   if err != nil {
-      return err
-   }
-   st.CreateEdge(x, opNd)
-   st.CreateEdge(y, opNd)
-   st.push(&opNd)
-   return nil
-}*/
-/*
-type MemoryTracer struct {
-   memory []*Node
-}
-func newMemoryTracer(size int) *MemoryTracer {
-   return &MemoryTracer{memory: make([]*Node, size, size)}
-}
-
-func (rec *MemoryTracer) resize(offset int64) {
-   newSize := int64(len(rec.memory))
-   for newSize < offset {
-      newSize *= 2
-   }
-   tmp := make([]*Node, newSize-int64(len(rec.memory)), newSize-int64(len(rec.memory)))
-   rec.memory = append(rec.memory, tmp...)
-}
-
-func (rec *MemoryTracer) store(nd *Node, offset int64, length int64) {
-   if int64(len(rec.memory)) < offset+length {
-      rec.resize(offset+length)
-   }
-   for i := offset; i < offset+length; i++ {
-      rec.memory[i] = nd
-   }
-}
-func (rec *MemoryTracer) load(offset int64, length int64) (*Node) {
-   if int64(len(rec.memory)) < offset+length {
-      rec.resize(offset+length)
-   }
-   for i := offset; i < offset+length; i++ {
-      if rec.memory[i] != nil {
-	 return rec.memory[i]
-      }
-   }
-   return nil
-}
-*/

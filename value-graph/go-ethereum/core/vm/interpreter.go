@@ -17,7 +17,6 @@
 package vm
 
 import (
-	"fmt"
 	"hash"
 	"sync/atomic"
 
@@ -25,12 +24,9 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/log"
-
-	//	"encoding/hex"
-	"os"
 )
 
-var DRAW = false
+var DrawGraph = false
 
 // Config are the configuration options for the Interpreter
 type Config struct {
@@ -227,7 +223,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	// the execution of one of the operations or until the done flag is set by the
 	// parent context.
 	steps := 0
-	callContext.nstack.newGraph(DRAW)
+	callContext.nstack.newGraph(DrawGraph)
 	for {
 		steps++
 		if steps%1000 == 0 && atomic.LoadInt32(&in.evm.abort) != 0 {
@@ -316,27 +312,12 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		case err != nil:
 			return nil, err
 		case operation.reverts:
-			i, j := callContext.nstack.countLive()
-			if DRAW && (callContext.nstack.stopFlag) && i < 100 {
-				fmt.Printf("revert: %d, len: %d, live: %d, size:%d\n", in.evm.BlockNumber.Uint64(), i, j, len(contract.Code))
-				fmt.Printf("Total len: %d, Total live: %d\n", TotalCount, LiveCount)
-				callContext.nstack.GenerateGraph("./graph.png")
-				os.Exit(3)
-			} else {
-				callContext.nstack.stopFlag = false
-			}
 			return res, ErrExecutionReverted
 		case operation.halts:
-			i, j := callContext.nstack.countLive()
-			if DRAW && (callContext.nstack.stopFlag) && i < 100 {
-				fmt.Printf("%d, len: %d, live: %d,  %d, %d\n", in.evm.BlockNumber.Uint64(), i, j, callContext.nstack.log.totalGas, callContext.nstack.log.liveGas)
-				fmt.Printf("Total len: %d, Total live: %d\n", TotalCount, LiveCount)
-				callContext.nstack.GenerateGraph("./graph.png")
-				//fmt.Println(hex.EncodeToString(contract.Code))
-				os.Exit(3)
-			} else {
-				callContext.nstack.stopFlag = false
-			}
+		   if DrawGraph {
+		      callContext.nstack.GenerateGraph("./graph.png")
+		      DrawGraph = false
+		   }
 			return res, nil
 		case !operation.jumps:
 			pc++
