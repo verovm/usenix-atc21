@@ -118,13 +118,20 @@ du -s ./stage1-substate-2-3M/
 # Metrics Use Case
 
 The metrics use case analyzes transactions by generating a graph of instruction flow. It will count the number of live instructions and live gases.
-You can produce a result of metrics as a CSV file for 9M blocks:
+You can produce a result of metrics and visualize it for 9M blocks by
+```bash
+# build evm for value-graph metrics
+cd ./value-graph/go-ethereum
+make all
+
+# execute metrics analysis and visualize
+cd ..
+./metrics-0-9M.sh $threads
 ```
-evm t8n-substate 1 9000000 --skip-transfer-txs --skip-create-txs --log-file result.csv
+If you want to produce an image of single value graph, following command will generate a PNG image for the first transaction executed in the block 2000000.
 ```
-If you want to visualize a value graph, following command will generate a PNG image for the first transaction executed in the block 2000000.
-```
-evm t8n-substate 2000000 2000000 --workers 1 --graph
+cd ./value-graph/go-ethereum/build/bin
+evm t8n-substate 2000000 2000000 --workers 1 --skip-transfer-txs --skip-create-txs --graph
 ```
 
 # Contract Fuzzer Use Case
