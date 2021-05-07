@@ -155,26 +155,22 @@ du -s ./stage1-substate-2-3M/
 The metrics use case analyzes transactions by generating a graph of instruction flow. It counts the number of live instructions and live gases.
 To produce a result of metrics and visualize it for 9M blocks execute:
 
-@Seongho - please describe the parameter $threads (or maybe just hardcode a value, such as 4, 8, etc. - we may expect a user will run on a normal computer)
-
 ```bash
 # build evm for value-graph metrics
 cd ~/usenix-atc21/value-graph/go-ethereum
 make all
 
-# execute metrics analysis and visualize
+# execute metrics analysis and visualize. $numThreads sets the number of workers for replayer.
 cd ..
-./metrics-0-9M.sh $threads
+./metrics-0-9M.sh $numThreads
 ```
 
-@Seongho  - please describe what the script produces, where it is, and how does it much with the paper (i.e. refer to particular tables, sections, etc)
-
-@Seongho  - please use in the example exact parameters we used in the paper (unless it is 2000000)
+The script will replay 9M blocks and produce metrics from value graph analysis. The outputs will contain raw data for 9M blocks (csv files) and visualization of the data (Figure 7, 8, and 9). 
 
 To produce an image of single value graph, the following command generates a PNG image for the first transaction executed in the block 2000000.
 ```
 cd ~/usenix-atc21/value-graph/go-ethereum/build/bin
-evm t8n-substate 2000000 2000000 --workers 1 --skip-transfer-txs --skip-create-txs --graph
+evm t8n-substate 6011051 6011051 --workers 1 --skip-transfer-txs --skip-create-txs --graph
 ```
 
 # Contract Fuzzer Use Case
