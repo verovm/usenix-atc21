@@ -29,36 +29,29 @@ tar -xavf stage1-substate-0-9M.tar.zst
 mv stage1-substate-0-9M stage1-substate
 ```
 
-@ Yeonsoo - do we really need these downloads? I guess that a user either uses our sub-state DB snapshot, or he records everything from scratch. Is there any use case where the user would start from the middle - i.e. generate the DB from these snapshots? 
-
-* Exported blockchain files (0-1M.blockchain, 1-2M.blockchain, ...): [gdrive directory](https://drive.google.com/drive/folders/132VLKpxPfulbcg36hiY6C1Sef3yXAirG?usp=sharing) (104 GB)
-* Exported blockchain file of 9M blocks (0-9M.blockchain): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (104 GB)
-
 
 # Build the Recorder and Generate Database Snapshot
 
 It is also possible to generate your own sub-state database snapshot. It is useful either if the download of our snapshot is inpractical, or the recording should happen on alternative blockchains (i.e. our snapshot has been recorded on the mainet).
 
-@Yeonsoo - TODO - do we really need this link to the official documentation? You describe bellow how to build the tool right? I noticed that the official documentation is quite long and if the user just needs to type "build geth" we do not want him to study lenghty manuals. 
-
-The substate recorder/replayer and the use cases are implemented based on go-ethereum (geth). Please follow the official documentation _Building the source_ section of [Geth's README](./go-ethereum/README.md) for more details about building the  tools.
-
 ## Sync and Export Blockchain in Files
 
-@Yeonsoo - Can you please describe here what the user must exactly do to get what he needs for the experiment from paper? Bellow you say to export 1M of blocks, but we used the whole blockchain right? This is ok to mention that a user may collect a smaller dataset for experimenting, but we cannot avoid what we have in the paper. 
-
-@Yeonsoo - it does not have to be clear what this path is "/path/to/geth.datadir" - think that a user will likely copy paste the lines, and this path would not exist. Perhaps modify it to somethig relative to the user home. 
+Exported blockchain files will be used to generate the substate database and to measure time and space of Geth full node. You can export blockchain in a file with the following commands. To sync in reasonable amount of time, `--datadir` parameter must be the path to an empty directory on SSD with at least 1TB of space. Syncing step could take more than a day.
 
 ```bash
 cd ~/usenix-atc21/go-ethereum/
 make geth
 
 # press ctrl-c to stop geth sync when it reached the desired block height
-./build/bin/geth --datadir /path/to/geth.datadir --syncmode fast --gcmode full
+./build/bin/geth --datadir geth.datadir/ --syncmode fast --gcmode full
 
 # export from block 2,000,001 to 3,000,000 (total 1M blocks)
-./build/bin/geth --datadir /path/to/geth.datadir --syncmode fast --gcmode full 2-3M.blockchain 2000001 3000000
+./build/bin/geth --datadir geth.datadir/ --syncmode fast --gcmode full 2-3M.blockchain 2000001 3000000
 ```
+
+* Exported blockchain files (0-1M.blockchain, 1-2M.blockchain, ...): [gdrive directory](https://drive.google.com/drive/folders/132VLKpxPfulbcg36hiY6C1Sef3yXAirG?usp=sharing) (104 GB)
+* Exported blockchain file of 9M blocks (0-9M.blockchain): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (104 GB)
+
 
 ## Generate the Substate Database
 
@@ -82,33 +75,37 @@ The following experiments provide results from Table 2-3 and Figure 6 in section
 
 This experiment measures the time and the space to replay transactions with the Geth full node in Table 2-3. To measure the single thread performance in the block processing, the `--cache.noprefetch` option is given. The block import time and the maximum Geth database size of each 1M blocks is saved in `.log` files.
 
-@Yeonsoo - please double check that this path "~/usenix-atc21/go-ethereum/ is correct
-
 ```bash
 # build geth
 cd ~/usenix-atc21/go-ethereum/
 make geth
 
 # measure geth block import time and size
-./build/bin/geth --datadir geth.ethereum --cache.noprefetch import 0-1M.blockchain 2>&1 | tee -a geth-0-1M.log
-du -s geth.ethereum >> geth-0-1M.log
-./build/bin/geth --datadir geth.ethereum --cache.noprefetch import 8-9M.blockchain 2>&1 | tee -a geth-1-2M.log
-du -s geth.ethereum >> geth-1-2M.log
+./build/bin/geth --datadir geth.datadir/ --cache.noprefetch import 0-1M.blockchain 2>&1 | tee -a geth-0-1M.log
+grep 'Import done' geth-0-1M.log > geth-time-0-1M.log
+du -sb geth.datadir/ > geth-size-0-1M.log
+
+# continue the measurement with next 1M blocks
+./build/bin/geth --datadir geth.datadir/ --cache.noprefetch import 8-9M.blockchain 2>&1 | tee -a geth-1-2M.log
+grep 'Import done' geth-1-2M.log > geth-time-1-2M.log
+du -sb geth.datadir/ > geth-size-1-2M.log
+
 ...
 ```
 
-@Yeonsoo - please add here a sentence that the log files now contain the results in the Table XY - ideally provide an example log output. 
+`geth-time-0-1M.log`, `geth-time-1-2M.log`, ... should contain time spent to import and replay transactions in `0-1M.blockchain`, `1-2M.blockchain`, ...:
+```
+Import done in 1m20.480482469s.
+```
+
+`geth-size-0-1M.log`, `geth-size-1-2M.log`, ... should contain space (bytes) required to import and replay transactions in `0-1M.blockchain`, `1-2M.blockchain`, ...:
+```
+103707444	geth.datadir/
+```
 
 ## Substate Replayer - Time
 
 This experiment measures the execution time of the single- and multi-threaded substate replayer in Table 3 and Figure 6. The substate replayer contains the `evm transition-substate` command (`evm t8n-substate`) that loads substates of a given block range from the sub-state database snapshot in `./stage1-substate/` and replay the transactions. If the substate replayer finds that the replay output is different from the expected output, it returns an error.
-
-@Yeonsoo - probably remove this example - show only what the user must do to run the same experiment as in the paper. 
-
-For example, if you want to replay trasnactions from 46147 to 50000 with 8 replay threads:
-```bash
-evm t8n-substate 46147 50000 --workers 8
-```
 
 The experiment for this section is performed by two scripts: 
 
@@ -123,31 +120,41 @@ Execute the experiment by typing the following:
 cd ~/usenix-atc21/record-replay/go-ethereum/
 make all
 
-# measure replayer performance and print data in CSV
+# measure replayer performance and print data in tab-separated values (TSV)
 cd ../
 ./evm-t8n-substate-0-9M.sh
-./evm-t8n-substate-csv.py
+python3 ./evm-t8n-substate-tsv.py > evm-t8n-substate.tsv
 ```
 
-@Yeonsoo - please add here a sentence or two to say what (and where) the scripts produce and how does it match with the paper
+`evm-t8n-substate.csv` should look like:
+```
+block	1	2	4	8	12	16	24	32	48	64	
+0--1M	526.0	419.0	163.0	94.0	70.0	58.0	47.0	44.0	43.0	46.0	
+1--2M	1517.0	836.0	470.0	271.0	190.0	163.0	128.0	127.0	122.0	130.0	
+2--3M	24125.0	14563.0	9468.0	7179.0	6818.0	6699.0	6557.0	6456.0	6257.0	6212.0	
+3--4M	5222.0	2728.0	1586.0	913.0	678.0	562.0	465.0	439.0	429.0	431.0	
+4--5M	28873.0	15270.0	8583.0	4763.0	3454.0	2744.0	2126.0	1972.0	1916.0	1975.0	
+5--6M	35390.0	19037.0	10617.0	5891.0	4249.0	3452.0	2649.0	2411.0	2418.0	2619.0	
+6--7M	33672.0	18476.0	10171.0	5606.0	3989.0	3192.0	2495.0	2309.0	2276.0	2484.0	
+7--8M	38060.0	20898.0	11312.0	6242.0	4432.0	3579.0	2803.0	2503.0	2448.0	2586.0	
+8--9M	41999.0	22746.0	12222.0	6753.0	4800.0	3851.0	3032.0	2741.0	2767.0	2880.0	
+```
 
 
 ## Substate Replayer - Space
 
-This experiment measures the space required to replay transactions with the substate replayer in Table 2. The substate replayer contains the `evm dump-substate` command that reads `./stage1-substate/` and creates a database copy with substates found in a given range of blocks.
+This experiment measures the space required to store transaction substates of every 1M blocks in substate DB. The results of this experiment are contained in _Substate replayer_  column in Table 2. The substate replayer contains the `evm dump-substate` command that reads `./stage1-substate/` and creates a database copy with substates found in a given range of blocks.
 
-@Yeonsoo - it is not clear how this section matches with the paper
-
-For example, to measure space required to replay transactions in 2-3M blocks,
+For example, to measure space required to replay transactions in 2-3M blocks:
 ```bash
 # build substate replayer (evm)
 cd ~/usenix-atc21/record-replay/go-ethereum/
 make all
 
-# copy substates of 2-3M blocks and measure database size
+# copy substates of 2-3M blocks and measure database size (bytes)
 cd ../
 evm dump-substate ./stage1-substate-2-3M/ 2000001 3000000
-du -s ./stage1-substate-2-3M/
+du -sb ./stage1-substate-2-3M/
 ```
 
 # Metrics Use Case
@@ -276,16 +283,16 @@ Notice that all replicas use the same sub-state database mounted via a file moun
 
 This experiment provides results of Table 5 in section "5.4 Hard Fork Assessment". This experiment assesses hard forks by replaying the transactions in the same context they were executed except the protocols is changed by the new hard fork.
 
-@Yeonsoo - it is not clear what are just examples and what is needed to be run for the experiment in the paper - please streamline it 
+[replay-fork-0-9M.sh](./hard-fork/replay-fork-0-9M.sh) is a bash script to assess all hard forks activated before block 9,000,000 with CALL transactions (contract invocations) in initial 9M blocks.
 
-For example, to assess the Byzantium hard fork activated at block 4,370,000:
 ```bash
-evm replay-fork 1 4369999 --skip-transfer-txs --skip-create-txs --hard-fork 4370000
-```
+# build evm for hard fork assessment
+cd ~/usenix-atc21/hard-fork/go-ethereum/
+make all
 
-Note that the Istanbul hard fork is activated at block 9,069,000, while we replayed transactions in 9M blocks:
-```bash
-evm replay-fork 1 9000000 --skip-transfer-txs --skip-create-txs --hard-fork 9069000
+# run hard fork assessments with 9M blocks
+cd ../
+./replay-fork-0-9M.sh
 ```
 
 After replayed all transactions, `evm replay-fork` prints numbers and types of errors like:
@@ -311,15 +318,3 @@ stage1-substate: ReplayFork: =     23912243 out of gas
 | out of gas                              | Gas usage changed - Out-of-gas          |
 | more gas in replay-fork                 | Gas usage changed - Increased           |
 | less gas in replay-fork                 | Gas usage changed - Decreased           |
-
-[replay-fork-0-9M.sh](./hard-fork/replay-fork-0-9M.sh) is a bash script to assess all hard forks activated before block 9,000,000 with CALL transactions (contract invocations) in initial 9M blocks.
-
-```bash
-# build evm for hard fork assessment
-cd ~/usenix-atc21/hard-fork/go-ethereum/
-make all
-
-# run hard fork assessments with 9M blocks
-cd ../
-./replay-fork-0-9M.sh
-```
