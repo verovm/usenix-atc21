@@ -4,11 +4,11 @@ This repository contains all materials used for experiments in the paper:
 
 **Yeonsoo Kim, Seongho Jeong, Kamil Jezek, Bernd Burgstaller, and Bernhard Scholz**: _An Off-The-Chain Execution Environment for Scalable Testing and Profiling of Smart Contracts_,  ATC Usenix 2021
 
-These materials may be used for relplication studies, follow-up research, experimenting, etc. The following sections contain information about the information set-up, followed by the three use cases from the paper. 
+These materials may be used for relplication studies, follow-up research, experimenting, etc. The following sections contain information about the environment set-up, followed by the three use cases from the paper. 
 
 # Getting the Source Code
 
-First, checkout the source code. We expect this is done in your home directory, and all paths in the text bellow refer to a user home directory ```~/```:
+First, checkout the source code. We expect this is done in your home directory, and all paths in the text bellow refer to the user home directory ```~/```:
 
 ```
 git clone git@github.com:verovm/usenix-atc21.git
@@ -16,7 +16,7 @@ git clone git@github.com:verovm/usenix-atc21.git
 
 # Substate Database Snapshot
 
-The use cases from the paper reguire a pre-exesting sub-state databse snaphost. It can be either generated from the Recorder tool (described below), or we provide a snapshot for download. 
+The use cases from the paper reguire a pre-exesting sub-state database snapshots. It can be either generated from the Recorder tool (described below), or we provide a snapshot for download. 
 
 * Substate DB of 9M blocks (stage1-substate-0-9M.tar.zst): [gdrive download](https://drive.google.com/file/d/1jl6vdMea5ROKdrTUJUk8lh5NL48Do9xJ/view?usp=sharing) (139 GB, decompressed size: 285GB)
 
@@ -36,7 +36,7 @@ It is also possible to generate your own sub-state database snapshot. It is usef
 
 ## Sync and Export Blockchain in Files
 
-Exported blockchain files will be used to generate the substate database and to measure time and space of Geth full node. You can export blockchain in a file with the following commands. To sync in reasonable amount of time, `--datadir` parameter must be the path to an empty directory on SSD with at least 1TB of space. Syncing step could take more than a day.
+Exported blockchain files are used to generate the substate database and to measure the time and the space of the Geth full node. You can export blockchain in a file with the following commands. To sync in a reasonable amount of time, the `--datadir` parameter must be the path to an empty directory on an SSD with at least 1TB of space. The syncing step can take more than a day to finish.
 
 ```bash
 cd ~/usenix-atc21/go-ethereum/
@@ -49,13 +49,15 @@ make geth
 ./build/bin/geth --datadir geth.datadir/ --syncmode fast --gcmode full 2-3M.blockchain 2000001 3000000
 ```
 
+@Yeonsoo -- TODO - this is still not fully clear what the user is supposed to download. I guess he can even think the he must sync via the lines above, and download these files below, becuae you do not say what is what. 
+
 * Exported blockchain files (0-1M.blockchain, 1-2M.blockchain, ...): [gdrive directory](https://drive.google.com/drive/folders/132VLKpxPfulbcg36hiY6C1Sef3yXAirG?usp=sharing) (104 GB)
 * Exported blockchain file of 9M blocks (0-9M.blockchain): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (104 GB)
 
 
 ## Generate the Substate Database
 
-Substate recorder is implemented by modifying `geth import` command which processes blockchain files exported from Geth full node. To generate substate database, import a blockchain file exported from a Geth full node to our substate recorder. Substate recorder will create substate DB in `./stage1-substate/` directory.
+The substate recorder is implemented by modifying the `geth import` command, which processes blockchain files exported from the Geth full node. To generate substate database, import a blockchain file exported from a Geth full node to our substate recorder. The substate recorder will create the substate DB in `./stage1-substate/` directory.
 
 ```bash
 # build recorder
@@ -69,11 +71,11 @@ make geth
 
 # Scalability of Substate Replayer
 
-The following experiments provide results from Table 2-3 and Figure 6 in section "5.1 Scalability of Substate Replayer", which compares the time and the space required to replay transactions in 9M blocks using the Geth full node and the substate replayer.
+The following experiments provide results from Table 2-3 and Figure 6 in section "5.1 Scalability of Substate Replayer", which compares the time and the space required to replay the transactions in 9M blocks using the Geth full node and the substate replayer.
 
 ## Geth Full Node - Time and Space
 
-This experiment measures the time and the space to replay transactions with the Geth full node in Table 2-3. To measure the single thread performance in the block processing, the `--cache.noprefetch` option is given. The block import time and the maximum Geth database size of each 1M blocks is saved in `.log` files.
+This experiment measures the time and the space to replay the transactions with the Geth full node in Table 2-3. To measure the single thread performance in the block processing, the `--cache.noprefetch` option is given. The block import time and the maximum Geth database size of each 1M blocks is saved in `.log` files.
 
 ```bash
 # build geth
@@ -91,6 +93,9 @@ grep 'Import done' geth-1-2M.log > geth-time-1-2M.log
 du -sb geth.datadir/ > geth-size-1-2M.log
 
 ...
+
+@Yeonsoo - TODO - can you please explain these lines a little bit more - add a short intro paragraph here
+
 ```
 
 `geth-time-0-1M.log`, `geth-time-1-2M.log`, ... should contain time spent to import and replay transactions in `0-1M.blockchain`, `1-2M.blockchain`, ...:
@@ -143,7 +148,7 @@ block	1	2	4	8	12	16	24	32	48	64
 
 ## Substate Replayer - Space
 
-This experiment measures the space required to store transaction substates of every 1M blocks in substate DB. The results of this experiment are contained in _Substate replayer_  column in Table 2. The substate replayer contains the `evm dump-substate` command that reads `./stage1-substate/` and creates a database copy with substates found in a given range of blocks.
+This experiment measures the space required to store transaction substates of every 1M blocks in the substate DB. The results of this experiment are contained in _Substate replayer_  column in Table 2. The substate replayer contains the `evm dump-substate` command that reads `./stage1-substate/` and creates a database copy with substates found in a given range of blocks.
 
 For example, to measure space required to replay transactions in 2-3M blocks:
 ```bash
@@ -156,6 +161,7 @@ cd ../
 evm dump-substate ./stage1-substate-2-3M/ 2000001 3000000
 du -sb ./stage1-substate-2-3M/
 ```
+Repeat these steps for other block heights, 0-1M, 1-2M, 2-3M, etc. 
 
 # Metrics Use Case
 
@@ -172,7 +178,7 @@ cd ..
 ./metrics-0-9M.sh $numThreads
 ```
 
-The script will replay 9M blocks and produce metrics from value graph analysis. The outputs will contain raw data for 9M blocks (csv files) and visualization of the data (Figure 7, 8, and 9). 
+The script will replay 9M blocks and produce metrics from the value graph analysis. The outputs contain raw data for 9M blocks (csv files) and visualization of the data (Figure 7, 8, and 9). 
 
 To produce an image of single value graph, the following command generates a PNG image for the first transaction executed in the block 2000000.
 ```
