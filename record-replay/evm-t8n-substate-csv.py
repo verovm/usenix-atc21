@@ -22,13 +22,13 @@ def parse_delta(delta_str):
 
     return timedelta(**delta_params)
 
-print("block", end="\t");
+print("block", end=",");
 for w in workers:
-    print(w, end="\t")
+    print(w, end=",")
 print()
 
 for s in segments:
-    print(s.replace("-", "--"), end="\t")
+    print(s.replace("-", "--"), end=",")
     for w in workers:
         logname = "evm-t8n-substate-w{}-{}.log".format(w, s)
         logfile = open(logname)
@@ -38,6 +38,6 @@ for s in segments:
             if line[:len(prefix)] == prefix:
                 delta_str = line[len(prefix):].strip()
                 delta = parse_delta(delta_str)
-                print(delta.total_seconds(), end="\t")
+                print(delta.total_seconds(), end=",")
                 break
     print()
