@@ -49,10 +49,10 @@ make geth
 ./build/bin/geth --datadir geth.datadir/ --syncmode fast --gcmode full 2-3M.blockchain 2000001 3000000
 ```
 
-@Yeonsoo -- TODO - this is still not fully clear what the user is supposed to download. I guess he can even think the he must sync via the lines above, and download these files below, becuae you do not say what is what. 
+We provide exported blockchain files for download. To generate the substate database, use `0-9M.blockchain` which contains initial 9M blocks. To measure time and space of Geth full node, use blockchain files segmented by 1M blocks.
 
-* Exported blockchain files (0-1M.blockchain, 1-2M.blockchain, ...): [gdrive directory](https://drive.google.com/drive/folders/132VLKpxPfulbcg36hiY6C1Sef3yXAirG?usp=sharing) (104 GB)
-* Exported blockchain file of 9M blocks (0-9M.blockchain): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (104 GB)
+* Initial 9M blocks (`0-9M.blockchain`): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (total 104 GB)
+* 1M-block segments (`0-1M.blockchain`, `1-2M.blockchain`, ...): [gdrive directory](https://drive.google.com/drive/folders/132VLKpxPfulbcg36hiY6C1Sef3yXAirG?usp=sharing) (104 GB)
 
 
 ## Generate the Substate Database
@@ -82,10 +82,15 @@ This experiment measures the time and the space to replay the transactions with 
 cd ~/usenix-atc21/go-ethereum/
 make geth
 
-# measure geth block import time and size
+# replay transactions in 0-1M.blockchain
 ./build/bin/geth --datadir geth.datadir/ --cache.noprefetch import 0-1M.blockchain 2>&1 | tee -a geth-0-1M.log
+
+# extract block import time
 grep 'Import done' geth-0-1M.log > geth-time-0-1M.log
+
+# measure Geth database
 du -sb geth.datadir/ > geth-size-0-1M.log
+
 
 # continue the measurement with next 1M blocks
 ./build/bin/geth --datadir geth.datadir/ --cache.noprefetch import 8-9M.blockchain 2>&1 | tee -a geth-1-2M.log
@@ -94,16 +99,16 @@ du -sb geth.datadir/ > geth-size-1-2M.log
 
 ...
 
-@Yeonsoo - TODO - can you please explain these lines a little bit more - add a short intro paragraph here
-
 ```
 
-`geth-time-0-1M.log`, `geth-time-1-2M.log`, ... should contain time spent to import and replay transactions in `0-1M.blockchain`, `1-2M.blockchain`, ...:
+The values in `geth-time-0-1M.log`, `geth-time-1-2M.log`, ... are used in the paper, Section 5.1, Table 3, _Geth full node - Time (s)_ column.
+These logs contain time spent to import and replay transactions in `0-1M.blockchain`, `1-2M.blockchain`, ...:
 ```
 Import done in 1m20.480482469s.
 ```
 
-`geth-size-0-1M.log`, `geth-size-1-2M.log`, ... should contain space (bytes) required to import and replay transactions in `0-1M.blockchain`, `1-2M.blockchain`, ...:
+The values in `geth-size-0-1M.log`, `geth-size-1-2M.log`, ... are used in the paper, Section 5.1, Table 3, _Geth full node (GB)_ column in Table 2.
+These logs contain space (bytes) required to import and replay transactions in `0-1M.blockchain`, `1-2M.blockchain`, ...:
 ```
 103707444	geth.datadir/
 ```
