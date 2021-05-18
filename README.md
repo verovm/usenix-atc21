@@ -2,13 +2,13 @@
 
 This repository contains all materials used for experiments in the paper:
 
-**Yeonsoo Kim, Seongho Jeong, Kamil Jezek, Bernd Burgstaller, and Bernhard Scholz**: _An Off-The-Chain Execution Environment for Scalable Testing and Profiling of Smart Contracts_,  ATC Usenix 2021
+**Yeonsoo Kim, Seongho Jeong, Kamil Jezek, Bernd Burgstaller, and Bernhard Scholz**: _An Off-The-Chain Execution Environment for Scalable Testing and Profiling of Smart Contracts_,  USENIX ATC'21
 
-These materials may be used for relplication studies, follow-up research, experimenting, etc. The following sections contain information about the environment set-up, followed by the three use cases from the paper. 
+These materials may be used for replication studies, follow-up research, experimenting, etc. The following sections contain information about the environment set-up, followed by the three use cases from the paper. 
 
 # Getting the Source Code
 
-First, checkout the source code. We expect this is done in your home directory, and all paths in the text bellow refer to the user home directory ```~/```:
+First, checkout the source code. In the following it is assumed that this is done in your home directory, and all paths in the text below refer to the user home directory ```~/```:
 
 ```
 git clone git@github.com:verovm/usenix-atc21.git
@@ -16,7 +16,7 @@ git clone git@github.com:verovm/usenix-atc21.git
 
 # Substate Database Snapshot
 
-The use cases from the paper reguire a pre-exesting sub-state database snapshots. It can be either generated from the Recorder tool (described below), or we provide a snapshot for download. 
+The use cases from the paper require pre-existing substate database snapshots. It can be either generated from the Recorder tool (described below), or we provide a snapshot for download. 
 
 * Substate DB of 9M blocks (stage1-substate-0-9M.tar.zst): [gdrive download](https://drive.google.com/file/d/1jl6vdMea5ROKdrTUJUk8lh5NL48Do9xJ/view?usp=sharing) (139 GB, decompressed size: 285GB)
 
@@ -32,7 +32,7 @@ mv stage1-substate-0-9M stage1-substate
 
 # Build the Recorder and Generate Database Snapshot
 
-It is also possible to generate your own sub-state database snapshot. It is useful either if the download of our snapshot is inpractical, or the recording should happen on alternative blockchains (i.e. our snapshot has been recorded on the mainet).
+It is also possible to generate your own substate database snapshot. It is useful either if the download of our snapshot is impractical, or the recording should happen on alternative blockchains (i.e. our snapshot has been recorded on the mainet).
 
 ## Sync and Export Blockchain in Files
 
@@ -49,7 +49,7 @@ make geth
 ./build/bin/geth --datadir geth.datadir/ --syncmode fast --gcmode full 2-3M.blockchain 2000001 3000000
 ```
 
-We provide exported blockchain files for download. To generate the substate database, use `0-9M.blockchain` which contains initial 9M blocks. To measure time and space of Geth full node, use blockchain files segmented by 1M blocks.
+We provide exported blockchain files for download. To generate the substate database, use `0-9M.blockchain` which contains initial 9M blocks. To measure the time and space of Geth full node, use blockchain files segmented by 1M blocks.
 
 * Initial 9M blocks (`0-9M.blockchain`): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (total 104 GB)
 * 1M-block segments (`0-1M.blockchain`, `1-2M.blockchain`, ...): [gdrive directory](https://drive.google.com/drive/folders/132VLKpxPfulbcg36hiY6C1Sef3yXAirG?usp=sharing) (104 GB)
@@ -57,7 +57,7 @@ We provide exported blockchain files for download. To generate the substate data
 
 ## Generate the Substate Database
 
-The substate recorder is implemented by modifying the `geth import` command, which processes blockchain files exported from the Geth full node. To generate substate database, import a blockchain file exported from a Geth full node to our substate recorder. The substate recorder will create the substate DB in `./stage1-substate/` directory.
+The substate recorder is implemented by modifying the `geth import` command, which processes blockchain files exported from the Geth full node. To generate the substate database, import a blockchain file exported from a Geth full node to our substate recorder. The substate recorder will create the substate DB in `./stage1-substate/` directory.
 
 ```bash
 # build recorder
@@ -73,9 +73,9 @@ make geth
 
 The following experiments provide results from Table 2-3 and Figure 6 in section "5.1 Scalability of Substate Replayer", which compares the time and the space required to replay the transactions in 9M blocks using the Geth full node and the substate replayer.
 
-## Geth Full Node - Time and Space
+## Geth Full Node &mdash; Time and Space
 
-This experiment measures the time and the space to replay the transactions with the Geth full node in Table 2-3. To measure the single thread performance in the block processing, the `--cache.noprefetch` option is given. The block import time and the maximum Geth database size of each 1M blocks is saved in `.log` files.
+This experiment measures the time and the space to replay the transactions with the Geth full node in Table 2-3. To measure the single-thread performance in the block processing, the `--cache.noprefetch` option is given. The block import time and the maximum Geth database size of each 1M blocks are saved in `.log` files.
 
 ```bash
 # build geth
@@ -101,7 +101,7 @@ du -sb geth.datadir/ > geth-size-1-2M.log
 
 ```
 
-The values in `geth-time-0-1M.log`, `geth-time-1-2M.log`, ... are used in the paper, Section 5.1, Table 3, _Geth full node - Time (s)_ column.
+The values in `geth-time-0-1M.log`, `geth-time-1-2M.log`, ... are used in the paper, Section 5.1, Table 3, _Geth full node &mdash; Time (s)_ column.
 These logs contain time spent to import and replay transactions in `0-1M.blockchain`, `1-2M.blockchain`, ...:
 ```
 Import done in 1m20.480482469s.
@@ -113,9 +113,9 @@ These logs contain space (bytes) required to import and replay transactions in `
 103707444	geth.datadir/
 ```
 
-## Substate Replayer - Time
+## Substate Replayer &mdash; Time
 
-This experiment measures the execution time of the single- and multi-threaded substate replayer in Table 3 and Figure 6. The substate replayer contains the `evm transition-substate` command (`evm t8n-substate`) that loads substates of a given block range from the sub-state database snapshot in `./stage1-substate/` and replay the transactions. If the substate replayer finds that the replay output is different from the expected output, it returns an error.
+This experiment measures the execution time of the single- and multi-threaded substate replayer in Table 3 and Figure 6. The substate replayer contains the `evm transition-substate` command (`evm t8n-substate`) that loads substates of a given block range from the substate database snapshot in `./stage1-substate/` and replay the transactions. If the substate replayer finds that the replay output is different from the expected output, it returns an error.
 
 The experiment for this section is performed by two scripts: 
 
@@ -151,7 +151,7 @@ block,1,2,4,8,12,16,24,32,48,64,
 ```
 
 
-## Substate Replayer - Space
+## Substate Replayer &mdash; Space
 
 This experiment measures the space required to store transaction substates of every 1M blocks in the substate DB. The results of this experiment are contained in _Substate replayer_  column in Table 2. The substate replayer contains the `evm dump-substate` command that reads `./stage1-substate/` and creates a database copy with substates found in a given range of blocks.
 
@@ -185,7 +185,7 @@ cd ..
 
 The script will replay 9M blocks and produce metrics from the value graph analysis. The outputs contain raw data for 9M blocks (csv files) and visualization of the data (Figure 7, 8, and 9). 
 
-To produce an image of single value graph, the following command generates a PNG image for the first transaction executed in the block 2000000.
+To produce an image of a single value graph, the following command generates a PNG image for the first transaction executed in block 2000000.
 ```
 cd ~/usenix-atc21/value-graph/go-ethereum/build/bin
 evm t8n-substate 6011051 6011051 --workers 1 --skip-transfer-txs --skip-create-txs --graph
@@ -193,10 +193,10 @@ evm t8n-substate 6011051 6011051 --workers 1 --skip-transfer-txs --skip-create-t
 
 # Contract Fuzzer Use Case
 
-This experiment provides results for "Section 5.3 Fuzzer Use Case". This repository contais two variants of ContractFuzzer - an original version, and our fork that enables transaction replay. 
+This experiment provides results for "Section 5.3 Fuzzer Use Case". This repository contains two variants of ContractFuzzer &mdash; an original version, and our fork that enables transaction replay. 
 
 The experiment requires:
-* the sub-state database, 
+* the substate database, 
 * contracs' ABIs, 
 * addresses mapping (address-to-substate/): [gdrive download](https://drive.google.com/file/d/13eTEpu7Bt1XRpKDFFHYNhy_phwuLujGV/view?usp=sharing) (108 MB, decompressed size: 805 MB)
 * [NodeJS Installation](https://nodejs.org/en/download/), 
@@ -204,14 +204,14 @@ The experiment requires:
 
 ## Contracts' ABIs
 
-The contract's ABIs can be obtained by the script:
+The contracts' ABIs can be obtained by the script:
 ```
 cd ~/usenix-atc21/contract-fuzzer/substate-cf/contract_downloader/
 ./download_contracts.sh ~/address-to-substate/ ~/contracts 10
 ```
-The parameters of the script tell (1) the directory with the addresses mappings (2) the output dir (3) the size of the batch, the ABIs will be grouped into - in the paper we have used 10. 
+The parameters of the script tell (1) the directory with the addresses mappings (2) the output dir (3) the size of the batch, the ABIs will be grouped into &mdash; in the paper, we have used 10. 
 
-Notice that the script will try to download all available ABIs for the whole blockchain. It is possible to interrupt the script anytime earlier and continue the experiment on a smaller dataset. In the paper, we have dowloaed several hundreds of ABIs. 
+Notice that the script will try to download all available ABIs for the whole blockchain. It is possible to interrupt the script anytime earlier and continue the experiment on a smaller dataset. In the paper, we have downloaded several hundreds of ABIs. 
 
 ## Build Docker Images
 
@@ -228,13 +228,13 @@ cd ~/usenix-atc21/contract-fuzzer/substate-cf/contract_experiments/
 docker build -t cf-experiment-master  .
 ```
 
-## Run the Experiment - Original Contract Fuzzer
+## Run the Experiment &mdash; Original Contract Fuzzer
 
 Now the experiment may be triggered for the original contract fuzzer:
 ```
 cd ~/usenix-atc21/contract-fuzzer/original-cf/contract_experiments/
 ```
-Edit the ```docker-compose.yaml``` file with a text editor and update the following lines to contain correct paths on your system - absolute paths must be used (modify only the part before colon):
+Edit the ```docker-compose.yaml``` file with a text editor and update the following lines to contain correct paths on your system &mdash; absolute paths must be used (modify only the part before colon):
 ```
    - /opt/cf-experiments/contracts-original/:/contracts     # Directory with contracs's ABIs, must point to /absolute/path//usenix-atc21/contract-fuzzer/contracts-original
    - /opt/cf-experiments/address-to-substate/:/addresses    # Addresses mappings
@@ -247,7 +247,7 @@ The experiment may be now invoked via docker:
  docker stack deploy -c  docker-compose.yaml CF
  ```
  These commands run the experiment as docker services. 
- Now, periodically monitor the service logs, which will contain speed of the execution, by using the following command: 
+ Now, periodically monitor the service logs, which will contain the speed of the execution, by using the following command: 
  ```
  docker service logs CF_master
  ```
@@ -256,13 +256,13 @@ The experiment may be now invoked via docker:
  CF_master.1  | Next task is 10 Index: 2/1165
  CF_master.1  | Speed:  diffTime: 4.0002, finishedTasks: 10, speed: 2.4998750062496873
  ```
- After some time the experiment will process batches and the value of the  ```speed ``` stabilises. We have executed several hundrets of batches (```tasks```). The value is used in the paper in Table 4: ContractFuzzer — performance improvements, the first row.
+ After some time the experiment will process batches and the value of the  ```speed ``` stabilizes. We have executed several hundreds of batches (```tasks```). The value is used in the paper in Table 4: ContractFuzzer — performance improvements, the first row.
  
  The running experiment may be interrupted by typing:
  ```
  docker stack rm CF
  ```
- ## Run the Experiment - Contract Fuzzer with Substate Reply
+ ## Run the Experiment &mdash; Contract Fuzzer with Substate Reply
  
  To run the experiment, go to the directory 
  ```
@@ -284,15 +284,15 @@ The experiment may be now invoked via docker:
       replicas: 1    # Numner of parallel executions
  ```
 
-The same as in the previous experiment, the speed is monitored and the results are used for Table 4: ContractFuzzer — performance improvements, second and next rows. The number of parallel tasks in the first column matches to the number of selected ```replicas```.
+The same as in the previous experiment, the speed is monitored and the results are used for Table 4: ContractFuzzer — performance improvements, second and next rows. The number of parallel tasks in the first column matches the number of selected ```replicas```.
 
-Last two columns of the table were calculated. 
+The last two columns of the table were calculated. 
 
-Notice that all replicas use the same sub-state database mounted via a file mount, and no blockchain is needed. 
+Notice that all replicas use the same substate database mounted via a file mount, and no blockchain is needed. 
 
-# Hard Fork Assesment Use Case
+# Hard Fork Assessment Use Case
 
-This experiment provides results of Table 5 in section "5.4 Hard Fork Assessment". This experiment assesses hard forks by replaying the transactions in the same context they were executed except the protocols is changed by the new hard fork.
+This experiment provides the results of Table 5 in section "5.4 Hard Fork Assessment". This experiment assesses hard forks by replaying the transactions in the same context they were executed except the protocols are changed by the new hard fork.
 
 [replay-fork-0-9M.sh](./hard-fork/replay-fork-0-9M.sh) is a bash script to assess all hard forks activated before block 9,000,000 with CALL transactions (contract invocations) in initial 9M blocks.
 
@@ -321,11 +321,11 @@ stage1-substate: ReplayFork: =     23912243 out of gas
 
 | `evm replay-fork` error                 | Table 6 column |
 |-----------------------------------------|-----------------------------------------|
-| invalid jump destination                | EVM runtime exception - Invalid JUMP    |
-| invalid opcode: opcode 0xfe not defined | EVM runtime exception - Invalid opcode  |
-| execution reverted                      | EVM runtime exception - Reverted        |
+| invalid jump destination                | EVM runtime exception &mdash; Invalid JUMP    |
+| invalid opcode: opcode 0xfe not defined | EVM runtime exception &mdash; Invalid opcode  |
+| execution reverted                      | EVM runtime exception &mdash; Reverted        |
 | invalid alloc in replay-fork            | Output Changed                          |
 | misc in replay-fork                     | Output Changed                          |
-| out of gas                              | Gas usage changed - Out-of-gas          |
-| more gas in replay-fork                 | Gas usage changed - Increased           |
-| less gas in replay-fork                 | Gas usage changed - Decreased           |
+| out of gas                              | Gas usage changed &mdash; Out-of-gas          |
+| more gas in replay-fork                 | Gas usage changed &mdash; Increased           |
+| less gas in replay-fork                 | Gas usage changed &mdash; Decreased           |
