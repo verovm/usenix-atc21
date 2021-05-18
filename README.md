@@ -185,7 +185,7 @@ cd ..
 
 The script will replay 9M blocks and produce metrics from the value graph analysis. The outputs contain raw data for 9M blocks (csv files) and visualization of the data (Figure 7, 8, and 9). 
 
-To produce an image of a single value graph, the following command generates a PNG image for the first transaction executed in block 2000000.
+To produce an image of a single value graph, the following command generates a PNG image for the first transaction executed in block 6011051.
 ```
 cd ~/usenix-atc21/value-graph/go-ethereum/build/bin
 evm t8n-substate 6011051 6011051 --workers 1 --skip-transfer-txs --skip-create-txs --graph
