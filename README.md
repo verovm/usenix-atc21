@@ -329,3 +329,10 @@ stage1-substate: ReplayFork: =     23912243 out of gas
 | out of gas                              | Gas usage changed &mdash; Out-of-gas          |
 | more gas in replay-fork                 | Gas usage changed &mdash; Increased           |
 | less gas in replay-fork                 | Gas usage changed &mdash; Decreased           |
+
+# Acknowledgements
+
+This Ethereum transaction recorder/replayer framework makes use of the following open source projects:
+
+- [Go Ethereum](https://geth.ethereum.org/)
+- [ContractFuzzer](https://github.com/gongbell/ContractFuzzer)
