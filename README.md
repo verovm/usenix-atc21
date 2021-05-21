@@ -336,3 +336,11 @@ This Ethereum transaction recorder/replayer framework makes use of the following
 
 - [Go Ethereum](https://geth.ethereum.org/)
 - [ContractFuzzer](https://github.com/gongbell/ContractFuzzer)
+
+This work was supported by [Fantom Foundation](https://fantom.foundation/), by the Australian Government
+through the ARC Discovery Project funding scheme (DP210101984),
+by the National Research Foundation of Korea (NRF) funded by the Korean
+government (MSIT) under Grant No. 2019R1F1A1062576, and by the
+Next-Generation Information Computing Development Program through the
+NRF, funded by the Ministry of Science, ICT &amp; Future Planning under Grant
+No. NRF-2015M3C4A7065522.
