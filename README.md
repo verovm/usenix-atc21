@@ -18,7 +18,7 @@ git clone git@github.com:verovm/usenix-atc21.git
 
 The use cases from the paper require pre-existing substate database snapshots. It can be either generated from the Recorder tool (described below), or we provide a snapshot for download. 
 
-* Substate DB of 9M blocks (stage1-substate-0-9M.tar.zst): [gdrive download](https://drive.google.com/file/d/1jl6vdMea5ROKdrTUJUk8lh5NL48Do9xJ/view?usp=sharing) (139 GB, decompressed size: 285GB)
+* Substate DB of 9M blocks (stage1-substate-0-9M.tar.zst): [download](http://elc.yonsei.ac.kr/usenix-atc21/stage1-substate-0-9M.tar.zst) (139 GB, decompressed size: 285GB, [sha512sum](http://elc.yonsei.ac.kr/usenix-atc21/stage1-substate-0-9M.tar.zst.sha512sum))
 
 Download this file and untar on your disk:
 
@@ -49,10 +49,22 @@ make geth
 ./build/bin/geth --datadir geth.datadir/ --syncmode fast --gcmode full 2-3M.blockchain 2000001 3000000
 ```
 
-We provide exported blockchain files for download. To generate the substate database, use `0-9M.blockchain` which contains initial 9M blocks. To measure the time and space of Geth full node, use blockchain files segmented by 1M blocks.
+We provide exported blockchain files for download. To generate the substate database, use `0-9M.blockchain` which contains initial 9M blocks. To measure the time and space of Geth full node, use blockchain files segmented by 1M blocks (`0-1M.blockchain`, `1-2M.blockchain`, ...).
 
-* Initial 9M blocks (`0-9M.blockchain`): [gdrive download](https://drive.google.com/file/d/1VoOtMlhcaT_CeVulP8VQ-TpHFZ7eVbqy/view?usp=sharing) (total 104 GB)
-* 1M-block segments (`0-1M.blockchain`, `1-2M.blockchain`, ...): [gdrive directory](https://drive.google.com/drive/folders/132VLKpxPfulbcg36hiY6C1Sef3yXAirG?usp=sharing) (104 GB)
+| File Name | File Size | First Block | Last Block |
+|---|---|---|---|
+| [0-1M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/0-1M.blockchain) | 855 MiB | 00000001 | 1000000 |
+| [1-2M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/1-2M.blockchain) | 1.4 GiB | 10000001 | 2000000 |
+| [2-3M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/2-3M.blockchain) | 1.6 GiB | 20000001 | 3000000 |
+| [3-4M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/3-4M.blockchain) | 3.5 GiB | 30000001 | 4000000 |
+| [4-5M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/4-5M.blockchain) | 18 GiB | 40000001 | 5000000 |
+| [5-6M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/5-6M.blockchain) | 21 GiB | 50000001 | 6000000 |
+| [6-7M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/6-7M.blockchain) | 19 GiB | 60000001 | 7000000 |
+| [7-8M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/7-8M.blockchain) | 20 GiB | 70000001 | 8000000 |
+| [8-9M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/8-9M.blockchain) | 21 GiB | 80000001 | 9000000 |
+| [0-9M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/0-9M.blockchain) | 104 GiB | 00000001 | 9000000 |
+
+SHA512 checksums: [blockchain.sha512sum](http://elc.yonsei.ac.kr/usenix-atc21/blockchain.sha512sum)
 
 
 ## Generate the Substate Database
@@ -198,7 +210,7 @@ This experiment provides results for "Section 5.3 Fuzzer Use Case". This reposit
 The experiment requires:
 * the substate database, 
 * contracs' ABIs, 
-* addresses mapping (address-to-substate/): [gdrive download](https://drive.google.com/file/d/13eTEpu7Bt1XRpKDFFHYNhy_phwuLujGV/view?usp=sharing) (108 MB, decompressed size: 805 MB)
+* addresses mapping (address-to-substate/): [download](http://elc.yonsei.ac.kr/usenix-atc21/address-to-substate.tar.gz) (108 MB, decompressed size: 805 MB, [sha512sum](http://elc.yonsei.ac.kr/usenix-atc21/address-to-substate.tar.gz.sha512sum))
 * [NodeJS Installation](https://nodejs.org/en/download/), 
 * [Docker installation](https://docs.docker.com/get-docker/).
 
