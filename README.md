@@ -18,7 +18,7 @@ git clone git@github.com:verovm/usenix-atc21.git
 
 The use cases from the paper require pre-existing substate database snapshots. It can be either generated from the Recorder tool (described below), or we provide a snapshot for download. 
 
-* Substate DB of 9M blocks (stage1-substate-0-9M.tar.zst): [download](http://elc.yonsei.ac.kr/usenix-atc21/stage1-substate-0-9M.tar.zst) (139 GB, decompressed size: 285GB, [sha512sum](http://elc.yonsei.ac.kr/usenix-atc21/stage1-substate-0-9M.tar.zst.sha512sum))
+* Substate DB of 9M blocks (stage1-substate-0-9M.tar.zst): [download](http://elc.yonsei.ac.kr/usenix-atc21/stage1-substate-0-9M.tar.zst) (139 GB, decompressed size: 285GB, [sha512sum](http://elc.yonsei.ac.kr/usenix-atc21/usenix-atc21.sha512sum))
 
 Download this file and untar on your disk:
 
@@ -64,7 +64,7 @@ We provide exported blockchain files for download. To generate the substate data
 | [8-9M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/8-9M.blockchain) | 21 GiB | 80000001 | 9000000 |
 | [0-9M.blockchain](http://elc.yonsei.ac.kr/usenix-atc21/0-9M.blockchain) | 104 GiB | 00000001 | 9000000 |
 
-SHA512 checksums: [blockchain.sha512sum](http://elc.yonsei.ac.kr/usenix-atc21/blockchain.sha512sum)
+SHA512 checksums: [sha512sum](http://elc.yonsei.ac.kr/usenix-atc21/usenix-atc21.sha512sum)
 
 
 ## Generate the Substate Database
@@ -210,7 +210,7 @@ This experiment provides results for "Section 5.3 Fuzzer Use Case". This reposit
 The experiment requires:
 * the substate database, 
 * contracs' ABIs, 
-* addresses mapping (address-to-substate/): [download](http://elc.yonsei.ac.kr/usenix-atc21/address-to-substate.tar.gz) (108 MB, decompressed size: 805 MB, [sha512sum](http://elc.yonsei.ac.kr/usenix-atc21/address-to-substate.tar.gz.sha512sum))
+* addresses mapping (address-to-substate/): [download](http://elc.yonsei.ac.kr/usenix-atc21/address-to-substate.tar.gz) (108 MB, decompressed size: 805 MB, [sha512sum](http://elc.yonsei.ac.kr/usenix-atc21/usenix-atc21.sha512sum))
 * [NodeJS Installation](https://nodejs.org/en/download/), 
 * [Docker installation](https://docs.docker.com/get-docker/).
 
