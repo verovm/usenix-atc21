@@ -14,6 +14,24 @@ First, checkout the source code. In the following it is assumed that this is don
 git clone git@github.com:verovm/usenix-atc21.git
 ```
 
+## Code Architecture
+
+`~/usenix-atc21/record-replay` contains our recorder/replayer implementation.
+We added 2,964 lines of code (LOC) to implement our testing environment based on Geth v1.9.18 (`~/usenix-atc21/go-ethereum`) with more than 400k LOC.
+The definition of transaction substate and methods for the RLP and JSON encodings are defined in Geth’s `research` module with 1,268 LOC added.
+Our substate recorder is implemented with 139 LOC within the `core` module.
+The main part of the `transition-substate` command of our substate replayer took 365 LOC in file `cmd/evm/research/t8n.go`.
+
+To implement the substate recorder in Section 4.2, we modified the Geth `import` command to trace and record substates.
+We instrumented the `core/state` module to trace indices and values accessed during transaction execution.
+We employ LevelDB [21] with our substate database, which is the KVDB implementation that Geth uses for its backend.
+
+We implemented the substate replayer in Section 4.3 as command `transition-substate` (`t8n-substate`) with the Geth EVM.
+`t8n-substate` receives a range of blocks and replays all transactions in the given range.
+It has options to configure the number of replay threads and to skip the replay of transactions of a particular type such as transfer, contract creation, and contract invocation.
+If one of the replay threads raises an exception, `t8n-substate` reports the substate key (`block_tx`) and difference between the EVM output and the expected output before terminating.
+
+
 # Substate Database Snapshot
 
 The use cases from the paper require pre-existing substate database snapshots. It can be either generated from the Recorder tool (described below), or we provide a snapshot for download. 
