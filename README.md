@@ -24,12 +24,12 @@ The main part of the `transition-substate` command of our substate replayer took
 
 To implement the substate recorder in Section 4.2, we modified the Geth `import` command to trace and record substates.
 We instrumented the `core/state` module to trace indices and values accessed during transaction execution.
-We employ LevelDB [21] with our substate database, which is the KVDB implementation that Geth uses for its backend.
+We employ [LevelDB](https://github.com/syndtr/goleveldb) with our substate database, which is the KVDB implementation that Geth uses for its backend.
 
 We implemented the substate replayer in Section 4.3 as command `transition-substate` (`t8n-substate`) with the Geth EVM.
 `t8n-substate` receives a range of blocks and replays all transactions in the given range.
 It has options to configure the number of replay threads and to skip the replay of transactions of a particular type such as transfer, contract creation, and contract invocation.
-If one of the replay threads raises an exception, `t8n-substate` reports the substate key (`block_tx`) and difference between the EVM output and the expected output before terminating.
+If one of the replay threads raises an exception, `t8n-substate` reports the substate key (`block_tx`) and the difference between the EVM output and the expected output before terminating.
 
 
 # Substate Database Snapshot
