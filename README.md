@@ -64,7 +64,7 @@ make geth
 ./build/bin/geth --datadir geth.datadir/ --syncmode fast --gcmode full
 
 # export from block 2,000,001 to 3,000,000 (total 1M blocks)
-./build/bin/geth --datadir geth.datadir/ --syncmode fast --gcmode full 2-3M.blockchain 2000001 3000000
+./build/bin/geth --datadir geth.datadir/ --syncmode fast --gcmode full export 2-3M.blockchain 2000001 3000000
 ```
 
 We provide exported blockchain files for download. To generate the substate database, use `0-9M.blockchain` which contains initial 9M blocks. To measure the time and space of Geth full node, use blockchain files segmented by 1M blocks (`0-1M.blockchain`, `1-2M.blockchain`, ...).
