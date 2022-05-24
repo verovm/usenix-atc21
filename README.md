@@ -11,7 +11,7 @@ These materials may be used for replication studies, follow-up research, experim
 ###  May 24th, 2022: New `record-replay` repository
 We proudly introduce our new repository &mdash; [verovm/record-replay](https://github.com/verovm/record-replay) &mdash; with updates on our recorder/replayer to support the latest hard forks (at the time, London hard fork at block `#12,965,000`). For further updates on our recorder/replayer implementation, please watch this new repository.
 
-We merged our substate implementation to the latest stable Geth (at the time, v1.10.15), refactored our code, and updated the substate database layout. We provide new `substate-cli` command to replay transactions or upgrade the substate database to the new layout.
+We merged our substate implementation to the latest stable Geth (at the time, v1.10.15), refactored our code, and updated the substate database layout. We provided new `substate-cli` command to replay transactions or upgrade the substate database to the new layout.
 
 
 # Getting the Source Code
@@ -32,7 +32,7 @@ The main part of the `transition-substate` command of our substate replayer took
 
 To implement the substate recorder in Section 4.2, we modified the Geth `import` command to trace and record substates.
 We instrumented the `core/state` module to trace indices and values accessed during transaction execution.
-We employ [LevelDB](https://github.com/syndtr/goleveldb) with our substate database, which is the KVDB implementation that Geth uses for its backend.
+We employed [LevelDB](https://github.com/syndtr/goleveldb) with our substate database, which is the KVDB implementation that Geth uses for its backend.
 
 We implemented the substate replayer in Section 4.3 as command `transition-substate` (`t8n-substate`) with the Geth EVM.
 `t8n-substate` receives a range of blocks and replays all transactions in the given range.
