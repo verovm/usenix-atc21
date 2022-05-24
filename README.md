@@ -6,6 +6,14 @@ This repository contains all materials used for experiments in the paper:
 
 These materials may be used for replication studies, follow-up research, experimenting, etc. The following sections contain information about the environment set-up, followed by the three use cases from the paper. 
 
+## News
+
+###  May 24th, 2022: New `record-replay` repository
+We proudly introduce our new repository &mdash; [verovm/record-replay](https://github.com/verovm/record-replay) &mdash; with updates on our recorder/replayer to support the latest hard forks (at the time, London hard fork at block `#12,965,000`). For further updates on our recorder/replayer implementation, please watch this new repository.
+
+We merged our substate implementation to the latest stable Geth (at the time, v1.10.15), refactored our code, and updated the substate database layout. We provide new `substate-cli` command to replay transactions or upgrade the substate database to the new layout.
+
+
 # Getting the Source Code
 
 First, checkout the source code. In the following it is assumed that this is done in your home directory, and all paths in the text below refer to the user home directory ```~/```:
